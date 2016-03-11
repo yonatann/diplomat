@@ -1,6 +1,6 @@
-defmodule Datastore.Property do
-  alias Datastore.Proto.Property, as: PbProperty
-  alias Datastore.Value
+defmodule Diplomat.Property do
+  alias Diplomat.Proto.Property, as: PbProperty
+  alias Diplomat.Value
 
   # def new({_name, nil}), do:
   def new({name, val}) do

@@ -1,5 +1,5 @@
-defmodule Datastore.Value do
-  alias Datastore.Proto.Value, as: PbVal
+defmodule Diplomat.Value do
+  alias Diplomat.Proto.Value, as: PbVal
 
   def new(nil), do: PbVal.new
   def new(val) when is_boolean(val),   do: PbVal.new(boolean_value: val)
@@ -7,7 +7,7 @@ defmodule Datastore.Value do
   def new(val) when is_float(val),     do: PbVal.new(double_value:  val)
 
   def new(%{}=val) do
-    PbVal.new(entity_value: Datastore.Entity.new(val))
+    PbVal.new(entity_value: Diplomat.Entity.new(val))
   end
 
   # is_binary isn't very good since there's a separate blob...
@@ -23,7 +23,7 @@ defmodule Datastore.Value do
   end
 
   def new(%{}=val) do
-    PbVal.new(entity_value: Datastore.Entity.new(val))
+    PbVal.new(entity_value: Diplomat.Entity.new(val))
   end
 
   # accepts an erlang timestamp object

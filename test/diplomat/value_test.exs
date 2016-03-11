@@ -1,7 +1,7 @@
-defmodule Datastore.ValueTest do
+defmodule Diplomat.ValueTest do
   use ExUnit.Case
-  alias Datastore.Value
-  alias Datastore.Proto.Value, as: PbVal
+  alias Diplomat.Value
+  alias Diplomat.Proto.Value, as: PbVal
 
   test "value types" do
     [{true, :boolean}, {35, :integer}, {3.1415, :double}, {"hello", :string}]
@@ -19,12 +19,12 @@ defmodule Datastore.ValueTest do
 
   test "entity values" do
     val = %{"hello" => "world"} |> Value.new
-    assert %Datastore.Proto.Entity{} = val.entity_value
+    assert %Diplomat.Proto.Entity{} = val.entity_value
 
     prop = val.entity_value.property |> List.first
-    assert %Datastore.Proto.Property{} = prop
+    assert %Diplomat.Proto.Property{} = prop
     assert "hello" == prop.name
-    assert %Datastore.Proto.Value{string_value: "world"} = prop.value
+    assert %Diplomat.Proto.Value{string_value: "world"} = prop.value
   end
 
   test "a flat list value" do
@@ -40,10 +40,10 @@ defmodule Datastore.ValueTest do
   test "a list with a map" do
     val = [1, %{"hello" => "world"}] |> Value.new
     assert val.list_value |> is_list
-    assert %Datastore.Proto.Value{integer_value: 1} = val.list_value |> List.first
+    assert %Diplomat.Proto.Value{integer_value: 1} = val.list_value |> List.first
   end
 
   test "a null value" do
-    assert %Datastore.Proto.Value{} == Value.new(nil)
+    assert %Diplomat.Proto.Value{} == Value.new(nil)
   end
 end

@@ -1,6 +1,6 @@
-defmodule Datastore.PropertyListTest do
+defmodule Diplomat.PropertyListTest do
   use ExUnit.Case
-  alias Datastore.PropertyList
+  alias Diplomat.PropertyList
 
   test "it returns a list with a null property for nil" do
     assert 1 == PropertyList.new(%{"test" => nil}) |> Enum.count

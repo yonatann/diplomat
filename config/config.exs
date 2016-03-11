@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :datastore, key: :value
+#     config :diplomat, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:datastore, :key)
+#     Application.get_env(:diplomat, :key)
 #
 # Or configure a 3rd-party app:
 #

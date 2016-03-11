@@ -1,6 +1,6 @@
-defmodule DatastoreTest do
+defmodule DiplomatTest do
   use ExUnit.Case
-  doctest Datastore
+  doctest Diplomat
 
   test "the truth" do
     assert 1 + 1 == 2

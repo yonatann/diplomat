@@ -1,8 +1,8 @@
-defmodule Datastore.Mixfile do
+defmodule Diplomat.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :datastore,
+    [app: :diplomat,
      version: "0.0.1",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,

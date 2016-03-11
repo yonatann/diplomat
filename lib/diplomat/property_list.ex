@@ -1,5 +1,5 @@
-defmodule Datastore.PropertyList do
-  alias Datastore.Property
+defmodule Diplomat.PropertyList do
+  alias Diplomat.Property
 
   def new(%{}=prop), do: prop |> Map.to_list |> from_list([])
   def new(prop) when is_list(prop), do: from_list(prop, [])
