@@ -32,9 +32,9 @@ defmodule Datastore.ValueTest do
     assert 3 == val.list_value |> Enum.count
   end
 
-  test "removes nil values from a list" do
+  test "doesn't remove nil values from a list" do
     val = [1,nil,2] |> Value.new
-    assert 2 == val.list_value |> Enum.count
+    assert 3 == val.list_value |> Enum.count
   end
 
   test "a list with a map" do
@@ -44,6 +44,6 @@ defmodule Datastore.ValueTest do
   end
 
   test "a null value" do
-    assert nil == Value.new(nil)
+    assert %Datastore.Proto.Value{} == Value.new(nil)
   end
 end

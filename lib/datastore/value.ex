@@ -1,7 +1,7 @@
 defmodule Datastore.Value do
   alias Datastore.Proto.Value, as: PbVal
 
-  def new(nil), do: nil
+  def new(nil), do: PbVal.new
   def new(val) when is_boolean(val),   do: PbVal.new(boolean_value: val)
   def new(val) when is_integer(val),   do: PbVal.new(integer_value: val)
   def new(val) when is_float(val),     do: PbVal.new(double_value:  val)
@@ -40,10 +40,7 @@ defmodule Datastore.Value do
   def new([]),          do: new([], [])
   def new([head|tail]), do: new([head|tail], [])
   defp new([], acc) do
-    filtered = acc
-               |> Enum.filter(fn(i)-> !!i end) # filter nils
-               |> Enum.reverse
-    PbVal.new(list_value: filtered)
+    PbVal.new(list_value: Enum.reverse(acc))
   end
 
   defp new([head|tail], acc) do

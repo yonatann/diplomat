@@ -6,9 +6,7 @@ defmodule Datastore.PropertyList do
   def new(prop), do: from_list([prop], [])
 
   defp from_list([], acc) do
-    acc
-    |> Enum.filter(fn(i)-> !!i end) # drop nil vals
-    |> Enum.reverse
+    acc |> Enum.reverse
   end
 
   defp from_list([head|tail], acc) do

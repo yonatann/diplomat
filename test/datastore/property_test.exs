@@ -3,6 +3,6 @@ defmodule Datastore.PropertyTest do
   alias Datastore.Property
 
   test "returns nil for nil" do
-    assert nil == Property.new({"testing", nil})
+    assert %Datastore.Proto.Property{name: "testing", value: %Datastore.Proto.Value{}} = Property.new({"testing", nil})
   end
 end
