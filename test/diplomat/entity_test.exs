@@ -21,7 +21,7 @@ defmodule Diplomat.EntityTest do
   end
 
   test "converting to proto from Entity" do
-    proto = %Entity{value: %{"hello" => "world"}}
+    proto = %Entity{properties: %{"hello" => "world"}}
             |> Entity.proto
 
     assert ^proto = %Diplomat.Proto.Entity{
@@ -29,5 +29,16 @@ defmodule Diplomat.EntityTest do
                         name: "hello", value: %Diplomat.Proto.Value{string_value: "world"}
                       }]
                     }
+  end
+
+  test "converting from protobuf struct" do
+    proto = %Entity{properties: %{"hello" => "world"}}
+            |> Entity.proto
+
+    assert %Entity{
+              properties: [
+                %Diplomat.Property{name: "hello", value: %Diplomat.Value{value: "world"} }
+              ]
+            } = Entity.from_proto(proto)
   end
 end

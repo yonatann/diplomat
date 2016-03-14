@@ -3,6 +3,23 @@ defmodule Diplomat.ValueTest do
   alias Diplomat.Value
   alias Diplomat.Proto.Value, as: PbVal
 
+  test "creating from protobuf struct" do
+    [true, 35, 3.1415, "hello", nil]
+      |> Enum.each( fn(i)->
+        proto = Value.proto(i)
+        val   = %Value{value: i}
+        assert val == Value.from_proto(proto)
+      end)
+  end
+
+  test "creating from a protobuf struct with a list value" do
+    proto = [1,2,3] |> Value.proto
+
+    assert %Value{value: [
+        %Value{value: 1}, %Value{value: 2}, %Value{value: 3}
+      ]} = Value.from_proto(proto)
+  end
+
   test "value types" do
     [{true, :boolean}, {35, :integer}, {3.1415, :double}, {"hello", :string}]
       |> Enum.each( fn(t)->

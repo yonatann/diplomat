@@ -3,8 +3,35 @@ defmodule Diplomat.Value do
 
   defstruct value: nil
 
-  # for instance:
-  #   val |> Value.proto |> PbVal.encode
+  def new(val), do: %__MODULE__{value: val}
+
+  def from_proto(%PbVal{boolean_value: val}) when is_boolean(val),
+    do: new(val)
+  def from_proto(%PbVal{integer_value: val}) when is_integer(val),
+    do: new(val)
+  def from_proto(%PbVal{double_value: val}) when is_float(val),
+    do: new(val)
+  def from_proto(%PbVal{string_value: val}) when is_binary(val),
+    do: new(val)
+  def from_proto(%PbVal{blob_value: val}) when is_bitstring(val),
+    do: new(val)
+  def from_proto(%PbVal{timestamp_microseconds_value: val}) when is_integer(val),
+    do: new(val) # need to convert this to a timestamp of some sort
+  def from_proto(%PbVal{entity_value: val}) when not is_nil(val) do
+    val |> Diplomat.Entity.from_proto(val) |> new
+  end
+
+  def from_proto(%PbVal{list_value: val}) when is_list(val) and length(val) > 0 do
+    val
+    |> Enum.map(&Diplomat.Value.from_proto(&1))
+    |> new
+  end
+
+  # must be a nil value if it makes it this far
+  def from_proto(_), do: new(nil)
+
+
+  # convert to protocol buffer struct
   def proto(%__MODULE__{value: val}), do: proto(val)
 
   def proto(nil), do: PbVal.new
@@ -42,13 +69,11 @@ defmodule Diplomat.Value do
   # if you already have an integer timestamp
   def proto({:time, val}), do: PbVal.new(timestamp_microseconds_value: val)
 
-  # list values
-  def proto([]),          do: proto([], [])
+  # list values (empty lists aren't an option)
   def proto([head|tail]), do: proto([head|tail], [])
   defp proto([], acc) do
     PbVal.new(list_value: Enum.reverse(acc))
   end
-
   defp proto([head|tail], acc) do
     proto(tail, [proto(head) | acc])
   end
