@@ -50,7 +50,7 @@ defmodule Diplomat.EntityTest do
 
 
 
-  test "converting a list of properties into a map" do
+  test "converting from a protobuf struct" do
     @entity
     |> Diplomat.Entity.from_proto
 
