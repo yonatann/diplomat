@@ -1,6 +1,12 @@
 defmodule Diplomat.Value do
   alias Diplomat.Proto.Value, as: PbVal
 
+  defstruct value: nil
+
+  # for instance:
+  #   val |> Value.proto |> PbVal.encode
+  def proto(%__MODULE__{value: val}), do: proto(val)
+
   def proto(nil), do: PbVal.new
   def proto(val) when is_boolean(val),   do: PbVal.new(boolean_value: val)
   def proto(val) when is_integer(val),   do: PbVal.new(integer_value: val)
