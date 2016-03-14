@@ -1,5 +1,6 @@
 defmodule Diplomat.Value do
   alias Diplomat.Proto.Value, as: PbVal
+  alias Diplomat.Entity
 
   defstruct value: nil
 
@@ -18,7 +19,7 @@ defmodule Diplomat.Value do
   def from_proto(%PbVal{timestamp_microseconds_value: val}) when is_integer(val),
     do: new(val) # need to convert this to a timestamp of some sort
   def from_proto(%PbVal{entity_value: val}) when not is_nil(val) do
-    val |> Diplomat.Entity.from_proto(val) |> new
+    val |> Diplomat.Entity.from_proto |> new
   end
 
   def from_proto(%PbVal{list_value: val}) when is_list(val) and length(val) > 0 do
@@ -29,7 +30,6 @@ defmodule Diplomat.Value do
 
   # must be a nil value if it makes it this far
   def from_proto(_), do: new(nil)
-
 
   # convert to protocol buffer struct
   def proto(%__MODULE__{value: val}), do: proto(val)

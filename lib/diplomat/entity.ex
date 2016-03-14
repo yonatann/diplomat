@@ -1,14 +1,15 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
-  alias Diplomat.{PropertyList}
+  alias Diplomat.{PropertyList, Property}
 
-  defstruct key: nil, properties: nil
+  defstruct key: nil, properties: []
 
-  def new(key, val) do
-    %__MODULE__{
-      key:        key,
-      properties: []
-    }
+  # def add_property(%__MODULE__{}=entity, name, value) when is_binary(name) do
+  #   add_property(entity, Property.new(name, value))
+  # end
+
+  def add_property(%__MODULE__{}=entity, %Diplomat.Property{}=prop) do
+    %{entity | properties: [prop|entity.properties]}
   end
 
   def proto(%__MODULE__{key: nil, properties: val}),
@@ -25,6 +26,9 @@ defmodule Diplomat.Entity do
   end
 
   def from_proto(%PbEntity{property: val, key: key}) do
-    new(key, val)
+    %__MODULE__{
+      key: key,
+      properties: PropertyList.from_proto(val)
+    }
   end
 end

@@ -8,4 +8,11 @@ defmodule Diplomat.Property do
   def proto({name, val}) do
     PbProperty.new(name: name, value: Value.proto(val))
   end
+
+  def from_proto(%PbProperty{}=prop) do
+    %__MODULE__{
+      name:  prop.name,
+      value: Value.from_proto(prop.value)
+    }
+  end
 end
