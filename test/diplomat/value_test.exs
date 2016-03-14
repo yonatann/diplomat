@@ -46,4 +46,9 @@ defmodule Diplomat.ValueTest do
   test "a null value" do
     assert %Diplomat.Proto.Value{} == Value.proto(nil)
   end
+
+  test "converting from a Value struct to the proto version" do
+    proto = %Value{value: "hello"} |> Value.proto
+    assert ^proto = %Diplomat.Proto.Value{string_value: "hello"}
+  end
 end
