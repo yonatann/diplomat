@@ -10,6 +10,6 @@ defmodule Diplomat.PropertyList do
   end
 
   defp from_list([head|tail], acc) do
-    from_list(tail, [Property.new(head)|acc])
+    from_list(tail, [Property.proto(head)|acc])
   end
 end
