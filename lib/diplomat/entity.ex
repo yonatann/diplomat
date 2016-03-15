@@ -2,7 +2,7 @@ defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
   alias Diplomat.{PropertyList, Property}
 
-  defstruct key: nil, properties: []
+  defstruct kind: nil, key: nil, properties: []
 
   # def add_property(%__MODULE__{}=entity, name, value) when is_binary(name) do
   #   add_property(entity, Property.new(name, value))
