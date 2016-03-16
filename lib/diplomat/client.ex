@@ -24,7 +24,7 @@ defmodule Diplomat.Client do
 
   def save(key, %{}=val) do
     # entity = Diplomat.Entity.new(Key.new(path_element: [PathElement.new(kind: key)]), val)
-    entity = Diplomat.Entity.new(allocate_ids(key), val)
+    entity = Diplomat.Entity.proto(allocate_ids(key), val)
 
     # props = Enum.map(val, fn({name, val})->
     #   # Diplomat.Proto.Property.new(name: name, value: Diplomat.Value.new(val))
