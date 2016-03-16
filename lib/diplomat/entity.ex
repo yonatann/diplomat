@@ -4,9 +4,12 @@ defmodule Diplomat.Entity do
 
   defstruct kind: nil, key: nil, properties: []
 
-  # def add_property(%__MODULE__{}=entity, name, value) when is_binary(name) do
-  #   add_property(entity, Property.new(name, value))
-  # end
+  def new(%{}=props, kind \\ nil) do
+    %__MODULE__{
+      kind: kind,
+      properties: PropertyList.new(props)
+    }
+  end
 
   def add_property(%__MODULE__{}=entity, %Diplomat.Property{}=prop) do
     %{entity | properties: [prop|entity.properties]}
@@ -18,11 +21,11 @@ defmodule Diplomat.Entity do
     do: proto(key, val)
 
   def proto(val),
-    do: PbEntity.new(property: PropertyList.new(val))
+    do: PbEntity.new(property: PropertyList.proto(val))
 
   def proto(%Diplomat.Proto.Key{}=key, val) do
     PbEntity.new(key:      key,
-                 property: PropertyList.new(val) )
+                 property: PropertyList.proto(val) )
   end
 
   def from_proto(%PbEntity{property: val, key: key}) do

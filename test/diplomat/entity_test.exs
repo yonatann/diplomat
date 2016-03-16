@@ -63,9 +63,33 @@ defmodule Diplomat.EntityTest do
   end
 
 
-  # test "converting from protobuf struct" do
-  #   assert %Entity{
-  #             data: %{"hello" => "world", "person" => %{"pi" => 3.1415}}
-  #           } = Entity.from_proto(@entity)
-  # end
+  test "generating an Entity from a flat map" do
+    map = %{"access_token" => "778efaf8333b2ac840f097448154bb6b", "brand" => "vst",
+            "geo_lat" => nil, "geo_long" => nil, "id" => 1089, "ip_address" => "127.0.0.1",
+            "log_guid" => "2016-1-0b68c093a68b4bb5b16b", "log_type" => "view",
+            "updated_at" => "2016-01-28T23:03:27.000Z",
+            "user_agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36",
+            "user_guid" => "58GQA26TZ567K3C65VVN", "vbid" => "12345"}
+    ent = Entity.new(map, "Log")
+    assert map |> Dict.keys |> length ==
+             ent.properties |> length
+    assert ent.kind == "Log"
+  end
+
+  test "generating an Entity from a nested map" do
+    ent = %{"person" => %{"firstName" => "Phil", "lastName" => "Burrows"}} |> Entity.new("Person")
+    person_val = List.first(ent.properties).value
+
+    assert ent.kind == "Person"
+    assert ent.properties |> length == 1
+
+    assert %Diplomat.Value{
+      value: %Diplomat.Entity{
+        properties: [
+          %Diplomat.Property{name: "firstName", value: %Value{value: "Phil"}},
+          %Diplomat.Property{name: "lastName",  value: %Value{value: "Burrows"}}
+        ]
+      }
+    } = person_val
+  end
 end

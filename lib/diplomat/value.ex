@@ -1,8 +1,18 @@
 defmodule Diplomat.Value do
   alias Diplomat.Proto.Value, as: PbVal
-  alias Diplomat.Entity
+  alias Diplomat.{Entity, Property}
 
   defstruct value: nil
+
+  # if it's a struct (presumably, something we know about), just pass it along
+  def new(val=%{__struct__: _}) do
+    %__MODULE__{ value: val }
+  end
+  def new(%{}=val) do
+    IO.puts "value:: "
+    IO.inspect(val)
+    %__MODULE__{ value: Entity.new(val) }
+  end
 
   def new(val), do: %__MODULE__{value: val}
 

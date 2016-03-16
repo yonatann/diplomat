@@ -3,6 +3,7 @@ defmodule Diplomat.ValueTest do
   alias Diplomat.Value
   alias Diplomat.Proto.Value, as: PbVal
 
+  # ==== Value.from_proto ======
   test "creating from protobuf struct" do
     [true, 35, 3.1415, "hello", nil]
       |> Enum.each( fn(i)->
@@ -20,6 +21,7 @@ defmodule Diplomat.ValueTest do
       ]} = Value.from_proto(proto)
   end
 
+  # ===== Value.proto -> convert to Proto.Value =====
   test "value types" do
     [{true, :boolean}, {35, :integer}, {3.1415, :double}, {"hello", :string}]
       |> Enum.each( fn(t)->

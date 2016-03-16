@@ -11,7 +11,22 @@ defmodule Diplomat.PropertyList do
   end
 
   defp from_list([head|tail], acc) do
-    from_list(tail, [Property.proto(head)|acc])
+    from_list(tail, [Property.new(head)|acc])
+  end
+
+  def proto(%{}=prop),
+    do: prop |> Map.to_list |> proto_from_list([])
+  def proto(prop) when is_list(prop),
+    do: proto_from_list(prop, [])
+  def proto(prop),
+    do: proto_from_list([prop], [])
+
+  defp proto_from_list([], acc) do
+    acc |> Enum.reverse
+  end
+
+  defp proto_from_list([head|tail], acc) do
+    proto_from_list(tail, [Property.proto(head)|acc])
   end
 
   def from_proto(%PbProperty{}=prop),

@@ -2,10 +2,6 @@ defmodule Diplomat.PropertyListTest do
   use ExUnit.Case
   alias Diplomat.{PropertyList, Property, Value, Entity}
 
-  test "it returns a list with a null property for nil" do
-    assert 1 == PropertyList.new(%{"test" => nil}) |> Enum.count
-  end
-
   @proplist [
     %Diplomat.Proto.Property{name: "hello",  value: %Diplomat.Proto.Value{string_value: "world"}},
     %Diplomat.Proto.Property{name: "math", value: %Diplomat.Proto.Value{entity_value:
@@ -18,6 +14,27 @@ defmodule Diplomat.PropertyListTest do
                                                       }
                              }
   ]
+
+  @map %{
+    "hello" => "world",
+    "how"   => "are",
+    "you"   => "doing",
+    "truth" => true,
+    "double"=> 3.1415
+  }
+
+  # ======= PropertyList.new ========
+  test "it returns a list with a null property for nil" do
+    list = PropertyList.new(%{"test" => nil})
+    assert 1 == list |> Enum.count
+    assert [
+      %Property{
+        name: "test",
+        value: %Value{value: nil}
+      }
+    ] = list
+  end
+
 
   test "creating a map from a flat list of properties" do
     list = [
