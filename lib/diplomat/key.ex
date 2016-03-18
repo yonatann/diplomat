@@ -1,5 +1,6 @@
 defmodule Diplomat.Key do
   alias Diplomat.Proto.Key, as: PbKey
+  alias Diplomat.Proto.PartitionId, as: PbPartition
 
   defstruct id: nil, name: nil, kind: nil, parent: nil, dataset_id: nil, namespace: nil
 
@@ -44,6 +45,18 @@ defmodule Diplomat.Key do
   end
   defp proto([[kind, name]|tail], acc) do
     proto(tail, [PbKey.PathElement.new(kind: kind, name: name)|acc])
+  end
+
+  def from_proto(nil), do: nil
+  def from_proto(%PbKey{partition_id: nil, path_element: path_el}),
+    do: from_path_proto(path_el, [])
+  def from_proto(%PbKey{partition_id: %PbPartition{dataset_id: did, namespace: ns}, path_element: path_el}) do
+    %{from_path_proto(path_el, []) | dataset_id: did, namespace: ns}
+  end
+
+  defp from_path_proto([], acc), do: acc |> Enum.reverse |> from_path
+  defp from_path_proto([head|tail], acc) do
+    from_path_proto(tail, [[head.kind, (head.id || head.name)]|acc])
   end
 
   def path(key) do

@@ -31,7 +31,7 @@ defmodule Diplomat.Entity do
 
   def from_proto(%PbEntity{property: val, key: key}) do
     %__MODULE__{
-      key: key,
+      key: Key.from_proto(key),
       properties: PropertyList.from_proto(val)
     }
   end

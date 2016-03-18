@@ -106,6 +106,43 @@ defmodule Diplomat.KeyTest do
     assert <<_::binary>> = pb |> PbKey.encode
   end
 
+  test "creating a key from a protobuf struct" do
+    assert %Key{
+      kind: "User",
+      name: "dev@philburrows.com",
+      dataset_id: "diplo",
+      namespace: "test"
+    } = %PbKey{
+      partition_id: Diplomat.Proto.PartitionId.new(dataset_id: "diplo", namespace: "test"),
+      path_element: [
+        PbKey.PathElement.new(kind: "User", name: "dev@philburrows.com")
+      ]
+    } |> Key.from_proto
+  end
+
+  test "creating a key from a nested key protobuf struct" do
+    assert %Key{
+      dataset_id: "diplo",
+      namespace: "test",
+      kind: "Name",
+      parent: %Key{
+        kind: "UserDetails",
+        id: 1,
+        parent: %Key{
+          kind: "User",
+          name: "dev@philburrows.com"
+        }
+      }
+    } = %PbKey{
+      partition_id: Diplomat.Proto.PartitionId.new(dataset_id: "diplo", namespace: "test"),
+      path_element: [
+        PbKey.PathElement.new(kind: "User", name: "dev@philburrows.com"),
+        PbKey.PathElement.new(kind: "UserDetails", id: 1),
+        PbKey.PathElement.new(kind: "Name", name: "phil-name")
+      ]
+    } |> Key.from_proto
+  end
+
   test "Key.incomplete?" do
     assert %Key{kind: "Asset"} |> Key.incomplete?
     refute %Key{id: 1}         |> Key.incomplete?
