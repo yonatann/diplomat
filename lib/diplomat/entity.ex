@@ -1,12 +1,13 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
-  alias Diplomat.{PropertyList, Property}
+  alias Diplomat.{PropertyList, Property, Key}
 
   defstruct kind: nil, key: nil, properties: []
 
-  def new(%{}=props, kind \\ nil) do
+  def new(%{}=props, kind \\ nil, id \\ nil) do
     %__MODULE__{
       kind: kind,
+      key: Key.new(kind, id),
       properties: PropertyList.new(props)
     }
   end

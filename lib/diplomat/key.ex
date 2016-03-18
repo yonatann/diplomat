@@ -1,7 +1,7 @@
 defmodule Diplomat.Key do
   alias Diplomat.Proto.Key, as: PbKey
 
-  defstruct id: nil, name: nil, kind: nil, parent: nil, partition_id: nil
+  defstruct id: nil, name: nil, kind: nil, parent: nil, dataset_id: nil, namespace: nil
 
   def new(kind),
     do: %__MODULE__{kind: kind}
@@ -19,7 +19,12 @@ defmodule Diplomat.Key do
     |> proto([])
     |> Enum.reverse
 
-    PbKey.new(partition_id: key.partition_id, path_element: path_els)
+    partition = case (key.dataset_id || key.namespace) do
+      nil -> nil
+      _   -> Diplomat.Proto.PartitionId.new(dataset_id: key.dataset_id, namespace: key.namespace)
+    end
+
+    PbKey.new(partition_id: partition, path_element: path_els)
   end
 
   defp proto([], acc), do: acc
