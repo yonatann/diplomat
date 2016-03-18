@@ -1,7 +1,7 @@
 defmodule Diplomat.Key do
   alias Diplomat.Proto.Key, as: PbKey
 
-  defstruct id: nil, name: nil, kind: nil, parent: nil, namespace: nil, partition_id: nil
+  defstruct id: nil, name: nil, kind: nil, parent: nil, partition_id: nil
 
   def new(kind),
     do: %__MODULE__{kind: kind}
@@ -14,7 +14,20 @@ defmodule Diplomat.Key do
     do: %{new(kind, id_or_name) | parent: parent}
 
   def proto(%__MODULE__{}=key) do
+    path_els = key
+    |> path
+    |> proto([])
+    |> Enum.reverse
 
+    PbKey.new(partition_id: key.partition_id, path_element: path_els)
+  end
+
+  defp proto([], acc), do: acc
+  defp proto([[kind, id]|tail], acc) when is_integer(id) do
+    proto(tail, [PbKey.PathElement.new(kind: kind, id: id)|acc])
+  end
+  defp proto([[kind, name]|tail], acc) do
+    proto(tail, [PbKey.PathElement.new(kind: kind, name: name)|acc])
   end
 
   def path(key) do
