@@ -39,6 +39,28 @@ defmodule Diplomat.KeyTest do
     } = Key.new("Author", "20k-author", parent)
   end
 
+  test "creating a kew via an array" do
+    assert %Key{
+      kind: "Book",
+      id:   1
+    } = ["Book", 1] |> Key.from_path
+  end
+
+  test "creating a key with ancestors via an array" do
+    assert %Key{
+      kind: "Name",
+      id: 3,
+      parent: %Key{
+        kind: "Author",
+        id: 2,
+        parent: %Key{
+          kind: "Book",
+          id: 1
+        }
+      }
+    } = [["Book", 1], ["Author", 2], ["Name", 3]] |> Key.from_path
+  end
+
   test "generating the path without ancestors" do
     assert [["Author", 123]] == Key.new("Author", 123) |> Key.path
     assert [["Author", "hello"]] == Key.new("Author", "hello") |> Key.path

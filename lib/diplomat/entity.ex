@@ -1,6 +1,6 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
-  alias Diplomat.{PropertyList, Property, Key}
+  alias Diplomat.{PropertyList, Key}
 
   defstruct kind: nil, key: nil, properties: []
 

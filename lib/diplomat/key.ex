@@ -13,6 +13,17 @@ defmodule Diplomat.Key do
   def new(kind, id_or_name, %__MODULE__{}=parent),
     do: %{new(kind, id_or_name) | parent: parent}
 
+  def from_path([_, _]=path),
+    do: from_path([path])
+  def from_path([[kind, id]|tail]),
+    do: from_path(tail, new(kind, id))
+
+  defp from_path([], parent),
+    do: parent
+  defp from_path([[kind, id]|tail], parent) do
+    from_path(tail, new(kind, id, parent))
+  end
+
   def proto(%__MODULE__{}=key) do
     path_els = key
     |> path
