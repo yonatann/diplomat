@@ -105,4 +105,16 @@ defmodule Diplomat.KeyTest do
 
     assert <<_::binary>> = pb |> PbKey.encode
   end
+
+  test "Key.incomplete?" do
+    assert %Key{kind: "Asset"} |> Key.incomplete?
+    refute %Key{id: 1}         |> Key.incomplete?
+    refute %Key{name: "test"}  |> Key.incomplete?
+  end
+
+  test "Key.complete?" do
+    refute %Key{kind: "Asset"} |> Key.complete?
+    assert %Key{id: 1}         |> Key.complete?
+    assert %Key{name: "test"}  |> Key.complete?
+  end
 end

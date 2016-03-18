@@ -52,6 +52,10 @@ defmodule Diplomat.Key do
     |> generate_path([])
   end
 
+  def incomplete?(%__MODULE__{id: nil, name: nil}), do: true
+  def incomplete?(%__MODULE__{}), do: false
+  def complete?(%__MODULE__{}=k), do: !incomplete?(k)
+
   defp ancestors_and_self(nil, acc), do: Enum.reverse(acc)
   defp ancestors_and_self(key, acc) do
     ancestors_and_self(key.parent, [key|acc])
