@@ -158,8 +158,7 @@ defmodule Diplomat.KeyTest do
     assert %Key{kind: "Asset"} |> Key.incomplete?
     refute %Key{id: 1}         |> Key.incomplete?
     refute %Key{name: "test"}  |> Key.incomplete?
-    key = [["Book", 1], ["Author", 2]] |> Key.from_path
-    refute key |> Key.incomplete?
+    refute [["Book", 1], ["Author", 2]] |> Key.from_path |> Key.incomplete?
   end
 
   test "Key.complete?" do
