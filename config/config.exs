@@ -27,7 +27,5 @@ use Mix.Config
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
-#     import_config "#{Mix.env}.exs"
 
-config :goth,
-       json: "config/credentials.json" |> Path.expand |> File.read!
+import_config "#{Mix.env}.exs"
