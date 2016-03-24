@@ -14,10 +14,10 @@ defmodule Diplomat.Key do
   def new(kind, id_or_name, %__MODULE__{}=parent),
     do: %{new(kind, id_or_name) | parent: parent}
 
-  def from_path([_, _]=path),
-    do: from_path([path])
   def from_path([[kind, id]|tail]),
     do: from_path(tail, new(kind, id))
+  def from_path([_, _]=path),
+    do: from_path([path])
 
   defp from_path([], parent),
     do: parent

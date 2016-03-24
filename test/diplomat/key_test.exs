@@ -46,7 +46,18 @@ defmodule Diplomat.KeyTest do
     } = ["Book", 1] |> Key.from_path
   end
 
-  test "creating a key with ancestors via an array" do
+  test "creating a key with a parent via an array" do
+    assert %Key{
+      kind: "Author",
+      id: 2,
+      parent: %Key{
+        kind: "Book",
+        id: 1
+      }
+    } = [["Book", 1], ["Author", 2]] |> Key.from_path
+  end
+
+  test "creating a key with multiple ancestors via an array" do
     assert %Key{
       kind: "Name",
       id: 3,
@@ -147,11 +158,14 @@ defmodule Diplomat.KeyTest do
     assert %Key{kind: "Asset"} |> Key.incomplete?
     refute %Key{id: 1}         |> Key.incomplete?
     refute %Key{name: "test"}  |> Key.incomplete?
+    key = [["Book", 1], ["Author", 2]] |> Key.from_path
+    refute key |> Key.incomplete?
   end
 
   test "Key.complete?" do
     refute %Key{kind: "Asset"} |> Key.complete?
     assert %Key{id: 1}         |> Key.complete?
     assert %Key{name: "test"}  |> Key.complete?
+    assert [["Asset", 1], ["Random", 2]] |> Key.from_path |> Key.complete?
   end
 end
