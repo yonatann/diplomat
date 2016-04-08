@@ -78,4 +78,19 @@ defmodule Diplomat.Key do
   defp generate_path([key|tail], acc) do
     generate_path tail, [[key.kind, (key.id || key.name)] | acc]
   end
+
+  def from_allocate_ids_proto(%Diplomat.Proto.AllocateIdsResponse{key: keys}) do
+    Enum.map keys, fn(k) ->
+      __MODULE__.from_proto(k)
+    end
+  end
+
+  def allocate_ids(type, count \\ 1) do
+    keys = Enum.map 1..count, fn(_i) ->
+      __MODULE__.new(type) |> __MODULE__.proto
+    end
+
+    Diplomat.Proto.AllocateIdsRequest.new(key: keys) |> Diplomat.Client.allocate_ids
+    # now, just call the api...
+  end
 end

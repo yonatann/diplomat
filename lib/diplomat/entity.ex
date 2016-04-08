@@ -35,4 +35,12 @@ defmodule Diplomat.Entity do
       properties: PropertyList.from_proto(val)
     }
   end
+
+  #
+  def save(%__MODULE__{}=entity) do
+    # if the key is incomplete, we need to allocate an id for the entity
+    # if entity.key |> Key.complete? do
+    #   # allocate an id, and then use that id for the
+    # end
+  end
 end

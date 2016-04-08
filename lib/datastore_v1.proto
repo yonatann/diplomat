@@ -574,9 +574,11 @@ message AllocateIdsResponse {
 service DatastoreService {
   // Look up some entities by key.
   rpc Lookup(LookupRequest) returns (LookupResponse) {
+    // POST /DatastoreService/Lookup ?
   };
   // Query for entities.
   rpc RunQuery(RunQueryRequest) returns (RunQueryResponse) {
+    // POST /DatastoreService/RunQuery ?
   };
   // Begin a new transaction.
   rpc BeginTransaction(BeginTransactionRequest) returns (BeginTransactionResponse) {
