@@ -35,7 +35,8 @@ defmodule Diplomat.Mixfile do
       {:poison, "~> 1.5.2"},
       {:chatterbox, github: "joedevivo/chatterbox"},
       {:bypass, "~> 0.1", only: :test},
-      {:mix_test_watch, "~> 0.2.5", only: :dev}
+      {:mix_test_watch, "~> 0.2.5", only: :dev},
+      {:uuid, "~> 1.1", only: :test}
     ]
   end
 end

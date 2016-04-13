@@ -1,26 +1,7 @@
 defmodule Diplomat.Client do
   alias Diplomat.Proto.{Key, Key.PathElement, AllocateIdsRequest}
 
-  @api_scope "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/datastore"
-
-  # we'll deal with ancestors later, but the gist is this: pass a from parent to child, ie:
-  # [%{kind: "Book", name: "20KLeagues"}, %{kind: "Author", name: "Jules Verne"}]
-  # def allocate_ids(kind, num \\ 1) when num > 0 do
-  #   keys = 0..(num-1) |> Enum.map(fn(_i)->
-  #     # "The path element must not be complete" i.e. it can only have a kind at its deepest level
-  #     Key.new(path_element: [PathElement.new(kind: kind)])
-  #   end)
-  #
-  #   req = AllocateIdsRequest.new(key: keys)
-  #
-  #   {:ok, resp} = HTTPoison.post("https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/allocateIds",
-  #                                 AllocateIdsRequest.encode(req),
-  #                                 [auth_header, proto_header])
-  #
-  #   IO.inspect resp.body
-  #   id_resp = Diplomat.Proto.AllocateIdsResponse.decode(resp.body)
-  #   id_resp.key |> List.first
-  # end
+  @api_scope "https://www.googleapis.com/auth/datastore"
 
   # def save(key, %{}=val) do
   #   # entity = Diplomat.Entity.new(Key.new(path_element: [PathElement.new(kind: key)]), val)
@@ -45,12 +26,19 @@ defmodule Diplomat.Client do
   def allocate_ids(req) do
     req
     |> Diplomat.Proto.AllocateIdsRequest.encode
-    |> call("allocate")
+    |> call("allocateIds")
+    |> case do
+      {:ok, body} ->
+        body
+        |> Diplomat.Proto.AllocateIdsResponse.decode
+        |> Diplomat.Key.from_allocate_ids_proto
+      any -> any
+    end
   end
 
   defp call(data, path) do
     {:ok, project} = Goth.Config.get(:project_id)
-    Path.join([endpoint, "datasets", project, path])
+    Path.join([endpoint, api_version, "projects", "#{project}:#{path}"])
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
       {:ok, response} -> {:ok, response.body}
@@ -58,10 +46,12 @@ defmodule Diplomat.Client do
     end
   end
 
-  defp endpoint, do: Application.get_env(:diplomat, :endpoint, "https://www.googleapis.com/datastore/v1beta2")
+  defp api_version, do: "v1beta3"
+  defp endpoint, do: Application.get_env(:diplomat, :endpoint, "https://datastore.googleapis.com")
+  defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
   defp auth_header do
-    {:ok, token} = Goth.Token.for_scope(@api_scope)
+    {:ok, token} = token_module.for_scope(@api_scope)
     {"Authorization", "#{token.type} #{token.token}"}
   end
 
