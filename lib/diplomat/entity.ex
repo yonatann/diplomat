@@ -1,24 +1,25 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
-  alias Diplomat.{PropertyList, Key}
+  alias Diplomat.Proto.{CommitRequest, Mutation}
+  alias Diplomat.{PropertyList, Key, Entity}
 
   defstruct kind: nil, key: nil, properties: []
 
   def new(%{}=props, kind \\ nil, id \\ nil) do
-    %__MODULE__{
+    %Entity{
       kind: kind,
       key: Key.new(kind, id),
       properties: PropertyList.new(props)
     }
   end
 
-  def add_property(%__MODULE__{}=entity, %Diplomat.Property{}=prop) do
+  def add_property(%Entity{}=entity, %Diplomat.Property{}=prop) do
     %{entity | properties: [prop|entity.properties]}
   end
 
-  def proto(%__MODULE__{key: nil, properties: val}),
+  def proto(%Entity{key: nil, properties: val}),
     do: proto(val)
-  def proto(%__MODULE__{key: key, properties: val}),
+  def proto(%Entity{key: key, properties: val}),
     do: proto(key, val)
 
   def proto(val),
@@ -29,6 +30,10 @@ defmodule Diplomat.Entity do
                  property: PropertyList.proto(val) )
   end
 
+  def proto(%Key{}=key, val) do
+    proto(Key.proto(key), val)
+  end
+
   def from_proto(%PbEntity{property: val, key: key}) do
     %__MODULE__{
       key: Key.from_proto(key),
@@ -37,10 +42,21 @@ defmodule Diplomat.Entity do
   end
 
   #
-  def save(%__MODULE__{}=entity) do
-    # if the key is incomplete, we need to allocate an id for the entity
-    # if entity.key |> Key.complete? do
-    #   # allocate an id, and then use that id for the
-    # end
+  def save(%Entity{}=entity) do
+    # might need to allocate ids first...?
+    CommitRequest.new(
+      # for now, just do this w/o a transaction
+      mode: :NON_TRANSACTIONAL,
+      mutation: Mutation.new(
+        insert: [
+          Entity.proto(entity)
+        ]
+      )
+    )
+    |> Diplomat.Client.commit
+    |> case do
+      {:ok, resp} -> Key.from_commit_proto(resp)
+      any -> any
+    end
   end
 end

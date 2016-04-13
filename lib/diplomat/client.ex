@@ -36,12 +36,29 @@ defmodule Diplomat.Client do
     end
   end
 
+  def commit(req) do
+    req
+    |> Diplomat.Proto.CommitRequest.encode
+    |> call("commit")
+    |> case do
+      {:ok, body} ->
+        IO.puts "the response: #{inspect body}"
+        decoded = Diplomat.Proto.CommitResponse.decode(body)
+        {:ok, decoded}
+      any ->
+        IO.puts "nope: #{inspect any}"
+        any
+    end
+  end
+
   defp call(data, path) do
     {:ok, project} = Goth.Config.get(:project_id)
     Path.join([endpoint, api_version, "projects", "#{project}:#{path}"])
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
-      {:ok, response} -> {:ok, response.body}
+      {:ok, response} ->
+        IO.puts "the response code: #{response.status_code}"
+        {:ok, response.body}
       other           -> other
     end
   end

@@ -578,7 +578,7 @@ service DatastoreService {
   };
   // Query for entities.
   rpc RunQuery(RunQueryRequest) returns (RunQueryResponse) {
-    // POST /DatastoreService/RunQuery ?
+    // POST /DatastoreService/RunQ ?
   };
   // Begin a new transaction.
   rpc BeginTransaction(BeginTransactionRequest) returns (BeginTransactionResponse) {

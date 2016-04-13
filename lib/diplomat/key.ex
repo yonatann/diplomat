@@ -1,6 +1,8 @@
 defmodule Diplomat.Key do
+  alias Diplomat.Key
   alias Diplomat.Proto.Key, as: PbKey
   alias Diplomat.Proto.PartitionId, as: PbPartition
+  alias Diplomat.Proto.{MutationResult, CommitResponse}
 
   defstruct id: nil, name: nil, kind: nil, parent: nil, dataset_id: nil, namespace: nil
 
@@ -63,6 +65,15 @@ defmodule Diplomat.Key do
     key
     |> ancestors_and_self([])
     |> generate_path([])
+  end
+
+  # I hate the way this method looks
+  def from_commit_proto(%CommitResponse{mutation_result:
+                          %MutationResult{
+                            insert_auto_id_key: pb_keys,
+                            index_updates: updates}}) do
+
+    pb_keys |> Enum.map(&Key.from_proto/1)
   end
 
   def incomplete?(%__MODULE__{id: nil, name: nil}), do: true
