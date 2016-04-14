@@ -29,10 +29,10 @@ defmodule Diplomat.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:goth, "~> 0.1.0"},
+      {:goth, "~> 0.1.1"},
       {:exprotobuf, "~> 1.0.0"},
       {:httpoison, "~> 0.8.0"},
-      {:poison, "~> 1.5.2 or ~> 2.1.0"},
+      {:poison, "~> 2.1"},
       # {:chatterbox, github: "joedevivo/chatterbox"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
