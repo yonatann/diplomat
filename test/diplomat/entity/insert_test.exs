@@ -42,7 +42,7 @@ defmodule Diplomat.Entity.InsertTest do
     IO.puts "the entity: #{inspect entity}"
 
     Bypass.expect bypass, fn conn ->
-      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
+      assert Regex.match?(~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path)
       resp = CommitResponse.new(
         mutation_result: MutationResult.new(
           index_updates: 1,

@@ -1,10 +1,9 @@
 defmodule Diplomat.Client do
   alias Diplomat.Proto.{Key, Key.PathElement, AllocateIdsRequest}
 
-  @api_scope "https://www.googleapis.com/auth/datastore"
+  @api_version "v1beta2"
 
   # def save(key, %{}=val) do
-  #   # entity = Diplomat.Entity.new(Key.new(path_element: [PathElement.new(kind: key)]), val)
   #   entity = Diplomat.Entity.proto(allocate_ids(key), val)
   #
   #   # props = Enum.map(val, fn({name, val})->
@@ -37,7 +36,7 @@ defmodule Diplomat.Client do
   end
 
   def commit(req) do
-    req
+    req # honestly, I just want to see what this looks like in the git things
     |> Diplomat.Proto.CommitRequest.encode
     |> call("commit")
     |> case do
@@ -51,9 +50,9 @@ defmodule Diplomat.Client do
     end
   end
 
-  defp call(data, path) do
-    {:ok, project} = Goth.Config.get(:project_id)
-    Path.join([endpoint, api_version, "projects", "#{project}:#{path}"])
+  defp call(data, method) do
+    url(method)
+    # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
       {:ok, response} ->
@@ -63,12 +62,31 @@ defmodule Diplomat.Client do
     end
   end
 
-  defp api_version, do: "v1beta3"
-  defp endpoint, do: Application.get_env(:diplomat, :endpoint, "https://datastore.googleapis.com")
+
+  defp url(method), do: url(@api_version, method)
+  defp url("v1beta2", method) do
+    Path.join([endpoint, "datastore", @api_version, "datasets", project, method])
+  end
+  defp url("v1beta3", method) do
+    Path.join([endpoint, @api_version, "projects", "#{project}:#{method}"])
+  end
+
+  defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))
+  defp default_endpoint("v1beta2"), do: "https://www.googleapis.com"
+  defp default_endpoint("v1beta3"), do: "https://datastore.google.com"
   defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
+  defp project do
+    {:ok, project} = Goth.Config.get(:project_id)
+    project
+  end
+
+  defp api_scope, do: api_scope(@api_version)
+  defp api_scope("v1beta2"), do: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/datastore"
+  defp api_scope("v1beta3"), do: "https://www.googleapis.com/auth/datastore"
+
   defp auth_header do
-    {:ok, token} = token_module.for_scope(@api_scope)
+    {:ok, token} = token_module.for_scope(api_scope)
     {"Authorization", "#{token.type} #{token.token}"}
   end
 
