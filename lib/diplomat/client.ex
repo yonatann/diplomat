@@ -50,6 +50,17 @@ defmodule Diplomat.Client do
     end
   end
 
+  def begin_transaction(req) do
+    req
+    |> Diplomat.Proto.BeginTransactionRequest.encode
+    |> call("beginTransaction")
+    |> case do
+         {:ok, body} ->
+           {:ok, Diplomat.Proto.BeginTransactionResponse.decode(body)}
+         any -> any
+    end
+  end
+
   defp call(data, method) do
     url(method)
     # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
@@ -73,7 +84,7 @@ defmodule Diplomat.Client do
 
   defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))
   defp default_endpoint("v1beta2"), do: "https://www.googleapis.com"
-  defp default_endpoint("v1beta3"), do: "https://datastore.google.com"
+  defp default_endpoint("v1beta3"), do: "https://datastore.googleapis.com"
   defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
   defp project do
