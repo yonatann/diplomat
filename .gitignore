@@ -6,3 +6,4 @@ erl_crash.dump
 config/*credentials.json
 !config/test-credentials.json
 /log
+.#*
