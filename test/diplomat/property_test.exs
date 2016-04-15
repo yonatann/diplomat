@@ -24,6 +24,11 @@ defmodule Diplomat.PropertyTest do
     } = {"hello", "world"} |> Property.new
   end
 
+  test "it converts keys to strings" do
+    property = Property.new({:random, 123})
+    assert "random" == property.name
+  end
+
   # ====== Property.from_proto ======
   test "can convert a Proto.Property into a Property" do
     proto = Diplomat.Proto.Property.new(name: "hello", value: Diplomat.Proto.Value.new(string_value: "world"))

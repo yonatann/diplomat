@@ -4,6 +4,7 @@ defmodule Diplomat.Property do
 
   defstruct name: nil, value: nil
 
+  def new({name, val}) when is_atom(name), do: new({to_string(name), val})
   def new({name, val}) do
     %__MODULE__{
       name:  name,
