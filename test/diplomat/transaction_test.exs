@@ -65,8 +65,40 @@ defmodule Diplomat.TransactionTest do
     assert response = CommitResponse.new
   end
 
+  test "a transaction block begins and commits the transaction automatically", opts do
+    assert_begin_and_commit!(opts)
+    Transaction.begin! fn t -> t end
+  end
 
-  test "a transaction block begins and commits the transaction automatically", %{bypass: bypass, project: project} do
+  test "we can add inserts to a transaction", opts do
+    e = Entity.new(%{abraham: "lincoln"}, "Body")
+    t = %Transaction{id: 123} |> Transaction.insert(e)
+    assert Enum.count(t.inserts) == 1
+    assert Enum.at(t.inserts, 0) == e
+  end
+
+  test "we can add upserts to a transaction", opts do
+    e = Entity.new(%{whatever: "yes"}, "Thing", 123)
+    t = %Transaction{id: 123} |> Transaction.upsert(e)
+    assert Enum.count(t.upserts) == 1
+    assert Enum.at(t.upserts, 0) == e
+  end
+
+  test "we can add updates to a transaction" do
+    e = Entity.new(%{whatever: "yes"}, "Thing", 123)
+    t = %Transaction{id: 123} |> Transaction.update(e)
+    assert Enum.count(t.updates) == 1
+    assert Enum.at(t.updates, 0) == e
+  end
+
+  test "we can add deletes to a transaction" do
+    k = Key.new("Person", 123)
+    t = %Transaction{id: 123} |> Transaction.delete(k)
+    assert Enum.count(t.deletes) == 1
+    assert Enum.at(t.deletes, 0) == k
+  end
+
+  def assert_begin_and_commit!(%{bypass: bypass, project: project}) do
     Bypass.expect bypass, fn conn ->
       if Regex.match? ~r{beginTransaction}, conn.request_path do
         assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/beginTransaction}, conn.request_path
@@ -82,11 +114,6 @@ defmodule Diplomat.TransactionTest do
         ) |> CommitResponse.encode
         Plug.Conn.resp conn, 201, resp
       end
-    end
-
-    Transaction.begin! fn t ->
-      # nothing to do here yet, just make sure we return the transaction
-      t
     end
   end
 end

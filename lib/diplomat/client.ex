@@ -36,7 +36,6 @@ defmodule Diplomat.Client do
   end
 
   def commit(req) do
-    IO.puts "the request: #{inspect req}"
     req # honestly, I just want to see what this looks like in the git things
     |> Diplomat.Proto.CommitRequest.encode
     |> call("commit")
@@ -46,7 +45,7 @@ defmodule Diplomat.Client do
         {:ok, decoded}
       any ->
         any
-    end 
+    end
   end
 
   def begin_transaction(req) do

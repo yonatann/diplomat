@@ -53,10 +53,28 @@ defmodule Diplomat.Transaction do
   end
 
   def commit!(%Transaction{}=t) do
-    IO.puts "the transaction: #{inspect t}"
     t
     |> to_commit_proto
     |> Diplomat.Client.commit
+  end
+
+  def insert(%Transaction{}=t, %Entity{}=e) do
+    # the only thing I don't like about this is it prepends to the list
+    # so, your last entities end up being first...
+    # I guess we could reverse the list after prepending. Hrm.
+    %{ t | inserts: [e | t.inserts]}
+  end
+
+  def upsert(%Transaction{}=t, %Entity{}=e) do
+    %{t | upserts: [e | t.upserts]}
+  end
+
+  def update(%Transaction{}=t, %Entity{}=e) do
+    %{t | updates: [e | t.updates]}
+  end
+
+  def delete(%Transaction{}=t, %Key{}=k) do
+    %{t | deletes: [k | t.deletes]}
   end
 
   def to_commit_proto(%Transaction{}=transaction) do
