@@ -58,11 +58,16 @@ defmodule Diplomat.Transaction do
     |> Diplomat.Client.commit
   end
 
-  def insert(%Transaction{}=t, %Entity{}=e) do
+  def insert(%Transaction{}=t, %Entity{key: key}=e) do
     # the only thing I don't like about this is it prepends to the list
     # so, your last entities end up being first...
     # I guess we could reverse the list after prepending. Hrm.
-    %{ t | inserts: [e | t.inserts]}
+    case Key.complete?(key) do
+      true ->
+        %{t | inserts: [e | t.inserts]}
+      false ->
+        %{t | insert_auto_ids: [e | t.inserts]}
+    end
   end
 
   def upsert(%Transaction{}=t, %Entity{}=e) do

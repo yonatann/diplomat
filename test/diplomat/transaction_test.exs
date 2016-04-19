@@ -44,7 +44,7 @@ defmodule Diplomat.TransactionTest do
         insert_auto_id: [],
         delete: [Key.new("Person", "that-one-guy") |> Key.proto]
       ]
-    )
+    ) 
 
     assert commit = Transaction.to_commit_proto(t)
   end
@@ -71,10 +71,17 @@ defmodule Diplomat.TransactionTest do
   end
 
   test "we can add inserts to a transaction", opts do
-    e = Entity.new(%{abraham: "lincoln"}, "Body")
+    e = Entity.new(%{abraham: "lincoln"}, "Body", 123)
     t = %Transaction{id: 123} |> Transaction.insert(e)
     assert Enum.count(t.inserts) == 1
     assert Enum.at(t.inserts, 0) == e
+  end
+
+  test "we can add inserts to a transaction", opts do
+    e = Entity.new(%{abraham: "lincoln"}, "Body")
+    t = %Transaction{id: 123} |> Transaction.insert(e)
+    assert Enum.count(t.insert_auto_ids) == 1
+    assert Enum.at(t.insert_auto_ids, 0) == e
   end
 
   test "we can add upserts to a transaction", opts do
