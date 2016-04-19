@@ -64,4 +64,29 @@ defmodule Diplomat.TransactionTest do
     {:ok, response} = %Transaction{id: <<1>>} |> Transaction.commit!
     assert response = CommitResponse.new
   end
+
+
+  test "a transaction block begins and commits the transaction automatically", %{bypass: bypass, project: project} do
+    Bypass.expect bypass, fn conn ->
+      if Regex.match? ~r{beginTransaction}, conn.request_path do
+        assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/beginTransaction}, conn.request_path
+        resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
+        Plug.Conn.resp conn, 201, resp
+      else
+        assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path
+        resp = CommitResponse.new(
+          mutation_result: MutationResult.new(
+            index_updates: 0,
+            insert_auto_id_key: []
+          )
+        ) |> CommitResponse.encode
+        Plug.Conn.resp conn, 201, resp
+      end
+    end
+
+    Transaction.begin! fn t ->
+      # nothing to do here yet, just make sure we return the transaction
+      t
+    end
+  end
 end

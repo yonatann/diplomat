@@ -25,6 +25,7 @@ defmodule Diplomat.Transaction do
 
   ```
   """
+  @iso_level :SNAPSHOT
 
   defstruct id: nil, state: :init, updates: [], upserts: [], inserts: [], insert_auto_ids: [], deletes: []
 
@@ -32,15 +33,23 @@ defmodule Diplomat.Transaction do
     %Transaction{id: id, state: :begun}
   end
 
-  def begin!(iso_level \\ :SNAPSHOT) do
+
+  def begin!(block) when is_function(block), do: begin!(@iso_level, block)
+  def begin!(iso_level, block) when is_function(block) do
+    begin!(iso_level)
+    |> block.()
+    |> commit!
+  end
+
+  def begin!(iso_level \\ @iso_level) do
     TransRequest.new(isolation_level: iso_level)
     |> Diplomat.Client.begin_transaction
     |> case do
-      {:ok, resp} ->
-        resp |> Transaction.from_begin_response
-      other ->
-        other
-    end
+         {:ok, resp} ->
+           resp |> Transaction.from_begin_response
+         other ->
+           other
+       end
   end
 
   def commit!(%Transaction{}=t) do
