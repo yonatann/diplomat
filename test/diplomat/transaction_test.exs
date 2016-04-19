@@ -3,7 +3,7 @@ defmodule Diplomat.TransactionTest do
 
   alias Diplomat.{Transaction, Entity, Key}
   alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
-  alias Diplomat.Proto.{CommitRequest, CommitResponse, MutationResult}
+  alias Diplomat.Proto.{CommitRequest, CommitResponse, MutationResult, Mutation}
 
   setup do
     bypass = Bypass.open
@@ -37,32 +37,32 @@ defmodule Diplomat.TransactionTest do
     commit = CommitRequest.new(
       mode: :TRANSACTIONAL,
       transaction: <<1,2,3>>,
-      mutation: [
+      mutation: Mutation.new(
         update: [Entity.new(%{phil: "burrows"}, "Person", "phil-burrows") |> Entity.proto],
         upsert: [],
         insert: [Entity.new(%{jimmy: "allen"}, "Person", 12234324) |> Entity.proto],
         insert_auto_id: [],
         delete: [Key.new("Person", "that-one-guy") |> Key.proto]
-      ]
-    ) 
+      )
+    )
 
-    assert commit = Transaction.to_commit_proto(t)
+    assert ^commit = Transaction.to_commit_proto(t)
   end
 
   test "committing a transaction calls the server with the right data and returns a successful response (whatever that is)", %{bypass: bypass, project: project} do
+    commit = CommitResponse.new(
+      mutation_result: MutationResult.new(
+        index_updates: 0,
+        insert_auto_id_key: []
+      )
+    )
     Bypass.expect bypass, fn conn ->
       assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path
-      resp = CommitResponse.new(
-        mutation_result: MutationResult.new(
-          index_updates: 0,
-          insert_auto_id_key: []
-        )
-      ) |> CommitResponse.encode
-      Plug.Conn.resp conn, 201, resp
+      response = commit |> CommitResponse.encode
+      Plug.Conn.resp conn, 201, response
     end
 
-    {:ok, response} = %Transaction{id: <<1>>} |> Transaction.commit!
-    assert response = CommitResponse.new
+    assert {:ok, ^commit} =  %Transaction{id: <<1>>} |> Transaction.commit!
   end
 
   test "a transaction block begins and commits the transaction automatically", opts do
@@ -70,21 +70,21 @@ defmodule Diplomat.TransactionTest do
     Transaction.begin! fn t -> t end
   end
 
-  test "we can add inserts to a transaction", opts do
+  test "we can add inserts to a transaction" do
     e = Entity.new(%{abraham: "lincoln"}, "Body", 123)
     t = %Transaction{id: 123} |> Transaction.insert(e)
     assert Enum.count(t.inserts) == 1
     assert Enum.at(t.inserts, 0) == e
   end
 
-  test "we can add inserts to a transaction", opts do
+  test "we can add insert_auto_ids to a transaction" do
     e = Entity.new(%{abraham: "lincoln"}, "Body")
     t = %Transaction{id: 123} |> Transaction.insert(e)
     assert Enum.count(t.insert_auto_ids) == 1
     assert Enum.at(t.insert_auto_ids, 0) == e
   end
 
-  test "we can add upserts to a transaction", opts do
+  test "we can add upserts to a transaction" do
     e = Entity.new(%{whatever: "yes"}, "Thing", 123)
     t = %Transaction{id: 123} |> Transaction.upsert(e)
     assert Enum.count(t.upserts) == 1
