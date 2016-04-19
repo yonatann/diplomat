@@ -11,3 +11,4 @@ defmodule Diplomat.TestToken do
     }}
   end
 end
+

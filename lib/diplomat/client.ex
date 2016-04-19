@@ -36,18 +36,17 @@ defmodule Diplomat.Client do
   end
 
   def commit(req) do
+    IO.puts "the request: #{inspect req}"
     req # honestly, I just want to see what this looks like in the git things
     |> Diplomat.Proto.CommitRequest.encode
     |> call("commit")
     |> case do
       {:ok, body} ->
-        IO.puts "the response: #{inspect body}"
         decoded = Diplomat.Proto.CommitResponse.decode(body)
         {:ok, decoded}
       any ->
-        IO.puts "nope: #{inspect any}"
         any
-    end
+    end 
   end
 
   def begin_transaction(req) do
@@ -67,7 +66,6 @@ defmodule Diplomat.Client do
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
       {:ok, response} ->
-        IO.puts "the response code: #{response.status_code}"
         {:ok, response.body}
       other           -> other
     end

@@ -39,8 +39,6 @@ defmodule Diplomat.Entity.InsertTest do
       kind, name
     )
 
-    IO.puts "the entity: #{inspect entity}"
-
     Bypass.expect bypass, fn conn ->
       assert Regex.match?(~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path)
       resp = CommitResponse.new(
