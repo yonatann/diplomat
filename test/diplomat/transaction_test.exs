@@ -3,7 +3,7 @@ defmodule Diplomat.TransactionTest do
 
   alias Diplomat.{Transaction, Entity, Key}
   alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
-  alias Diplomat.Proto.{CommitRequest, CommitResponse, MutationResult, Mutation}
+  alias Diplomat.Proto.{CommitRequest, CommitResponse, MutationResult, Mutation, RollbackResponse}
 
   setup do
     bypass = Bypass.open
@@ -47,6 +47,16 @@ defmodule Diplomat.TransactionTest do
     )
 
     assert ^commit = Transaction.to_commit_proto(t)
+  end
+
+  test "rolling back a transaction calls the server with the RollbackRequest", %{bypass: bypass, project: project} do
+    Bypass.expect bypass, fn conn ->
+      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/rollback}, conn.request_path
+      Plug.Conn.resp conn, 200, <<>> # the rsponse is empty
+    end
+
+    {:ok, resp} = %Transaction{id: <<1>>} |> Transaction.rollback
+    assert %RollbackResponse{} = resp
   end
 
   test "committing a transaction calls the server with the right data and returns a successful response (whatever that is)", %{bypass: bypass, project: project} do

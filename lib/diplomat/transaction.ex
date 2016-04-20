@@ -2,6 +2,7 @@ defmodule Diplomat.Transaction do
   alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
   alias Diplomat.Proto.BeginTransactionRequest,  as: TransRequest
   alias Diplomat.Proto.Mutation
+  alias Diplomat.Proto.RollbackRequest
   alias Diplomat.Proto.CommitRequest
   alias Diplomat.{Transaction, Entity, Key}
 
@@ -36,9 +37,18 @@ defmodule Diplomat.Transaction do
 
   def begin!(block) when is_function(block), do: begin!(@iso_level, block)
   def begin!(iso_level, block) when is_function(block) do
-    begin!(iso_level)
-    |> block.()
-    |> commit!
+    # the try block defines a new scope that isn't accessible in the rescue block
+    # so we need to begin the transaction here so both have access to the var
+    transaction = begin!(iso_level)
+    try do
+      transaction
+      |> block.()
+      |> commit!
+    rescue
+      e ->
+        rollback(transaction)
+        {:error, e}
+    end
   end
 
   def begin!(iso_level \\ @iso_level) do
@@ -56,6 +66,12 @@ defmodule Diplomat.Transaction do
     t
     |> to_commit_proto
     |> Diplomat.Client.commit
+  end
+
+  # require the transaction to have an ID
+  def rollback(%Transaction{id: id}) when not is_nil(id) do
+    RollbackRequest.new(transaction: id)
+    |> Diplomat.Client.rollback
   end
 
   def insert(%Transaction{}=t, %Entity{key: key}=e) do

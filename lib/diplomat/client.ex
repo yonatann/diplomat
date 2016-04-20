@@ -59,6 +59,18 @@ defmodule Diplomat.Client do
     end
   end
 
+  def rollback(req) do
+    IO.puts "the rollback: #{inspect req}"
+    req
+    |> Diplomat.Proto.RollbackRequest.encode
+    |> call("rollback")
+    |> case do
+         {:ok, body} ->
+           {:ok, Diplomat.Proto.RollbackResponse.decode(body)}
+          any -> any
+    end
+  end
+
   defp call(data, method) do
     url(method)
     # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
