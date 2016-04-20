@@ -60,7 +60,6 @@ defmodule Diplomat.Client do
   end
 
   def rollback(req) do
-    IO.puts "the rollback: #{inspect req}"
     req
     |> Diplomat.Proto.RollbackRequest.encode
     |> call("rollback")
