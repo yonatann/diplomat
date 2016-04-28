@@ -52,6 +52,7 @@ defmodule Diplomat.Entity do
     end
   end
 
+  # at some point we should validate the entity keys
   def upsert(%Entity{}=entity), do: upsert([entity])
   def upsert(entities) when is_list(entities) do
     [upsert: proto_list(entities, [])]

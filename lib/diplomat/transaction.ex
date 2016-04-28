@@ -27,6 +27,7 @@ defmodule Diplomat.Transaction do
   end
   ```
   """
+
   @iso_level :SNAPSHOT
 
   defstruct id: nil, state: :init, updates: [], upserts: [], inserts: [], insert_auto_ids: [], deletes: []
@@ -74,28 +75,33 @@ defmodule Diplomat.Transaction do
     |> Diplomat.Client.rollback
   end
 
-  def insert(%Transaction{}=t, %Entity{key: key}=e) do
-    # the only thing I don't like about this is it prepends to the list
-    # so, your last entities end up being first...
-    # I guess we could reverse the list after prepending. Hrm.
+  def insert(%Transaction{}=t, %Entity{}=e), do: insert(t, [e])
+  def insert(%Transaction{}=t, []), do: t
+  def insert(%Transaction{}=t, [%Entity{key: key}=e | tail]) do
     case Key.complete?(key) do
       true ->
-        %{t | inserts: [e | t.inserts]}
+        insert(%{t | inserts: [e | t.inserts]}, tail)
       false ->
-        %{t | insert_auto_ids: [e | t.inserts]}
+        insert(%{t | insert_auto_ids: [e | t.insert_auto_ids]}, tail)
     end
   end
 
-  def upsert(%Transaction{}=t, %Entity{}=e) do
-    %{t | upserts: [e | t.upserts]}
+  def upsert(%Transaction{}=t, %Entity{}=e), do: upsert(t, [e])
+  def upsert(%Transaction{}=t, []), do: t
+  def upsert(%Transaction{}=t, [%Entity{}=e | tail]) do
+    upsert(%{t | upserts: [e | t.upserts]}, tail)
   end
 
-  def update(%Transaction{}=t, %Entity{}=e) do
-    %{t | updates: [e | t.updates]}
+  def update(%Transaction{}=t, %Entity{}=e), do: update(t, [e])
+  def update(%Transaction{}=t, []), do: t
+  def update(%Transaction{}=t, [%Entity{}=e | tail]) do
+    update(%{t | updates: [e | t.updates]}, tail)
   end
 
-  def delete(%Transaction{}=t, %Key{}=k) do
-    %{t | deletes: [k | t.deletes]}
+  def delete(%Transaction{}=t, %Key{}=k), do: delete(t, [k])
+  def delete(%Transaction{}=t, []), do: t
+  def delete(%Transaction{}=t, [%Key{}=k | tail]) do
+    delete(%{t | deletes: [k | t.deletes]}, tail)
   end
 
   def to_commit_proto(%Transaction{}=transaction) do
