@@ -3,25 +3,6 @@ defmodule Diplomat.Client do
 
   @api_version "v1beta2"
 
-  # def save(key, %{}=val) do
-  #   entity = Diplomat.Entity.proto(allocate_ids(key), val)
-  #
-  #   # props = Enum.map(val, fn({name, val})->
-  #   #   # Diplomat.Proto.Property.new(name: name, value: Diplomat.Value.new(val))
-  #   #   Diplomat.Property.new(name: name, value: val)
-  #   # end)
-  #   # entity   = Diplomat.Proto.Entity.new(key: ), property: props)
-  #   mutation = Diplomat.Proto.Mutation.new(insert: [entity])
-  #   commit   = Diplomat.Proto.CommitRequest.new(mutation: mutation, mode: :NON_TRANSACTIONAL)
-  #   {:ok, resp} = HTTPoison.post("https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit",
-  #                   Diplomat.Proto.CommitRequest.encode(commit),
-  #                   [auth_header, proto_header])
-  #
-  #   IO.inspect resp.body
-  #   Diplomat.Proto.CommitResponse.decode(resp.body)
-  #     |> IO.inspect
-  # end
-
   def allocate_ids(req) do
     req
     |> Diplomat.Proto.AllocateIdsRequest.encode

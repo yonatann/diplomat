@@ -23,7 +23,7 @@ defmodule Diplomat.TransactionTest do
       Plug.Conn.resp conn, 201, resp
     end
 
-    trans = Transaction.begin!
+    trans = Transaction.begin
     assert %Transaction{state: :begun, id: <<40, 30, 20>>} = trans
   end
 
@@ -72,12 +72,12 @@ defmodule Diplomat.TransactionTest do
       Plug.Conn.resp conn, 201, response
     end
 
-    assert {:ok, ^commit} =  %Transaction{id: <<1>>} |> Transaction.commit!
+    assert {:ok, ^commit} =  %Transaction{id: <<1>>} |> Transaction.commit
   end
 
   test "a transaction block begins and commits the transaction automatically", opts do
     assert_begin_and_commit!(opts)
-    Transaction.begin! fn t -> t end
+    Transaction.begin fn t -> t end
   end
 
   test "we can add inserts to a transaction" do

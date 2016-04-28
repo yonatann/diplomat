@@ -30,7 +30,7 @@ defmodule Diplomat.Entity.InsertTest do
     end
   end
 
-  test "saving a single entity", %{bypass: bypass} do
+  test "inserting a single entity", %{bypass: bypass} do
     {:ok, project} = Goth.Config.get(:project_id)
     {kind, name}   = {"TestBook", "my-book-unique-id"}
 
@@ -50,7 +50,7 @@ defmodule Diplomat.Entity.InsertTest do
       Plug.Conn.resp conn, 201, resp
     end
 
-    keys = Entity.save(entity)
+    keys = Entity.insert(entity)
     assert Enum.count(keys) == 1
     retkey = hd(keys)
 

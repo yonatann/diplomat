@@ -13,9 +13,11 @@ defmodule Diplomat.Transaction do
   |> Transaction.save(entity)
   |> Transaction.save(entity2)
   |> Transaction.commit
+  ```
 
   OR
 
+  ```
   Transaction.begin fn t ->
     # auto-begin
     t
@@ -23,7 +25,6 @@ defmodule Diplomat.Transaction do
     |> Transaction.save(entity2)
     # auto-commits on exit
   end
-
   ```
   """
   @iso_level :SNAPSHOT
@@ -34,16 +35,15 @@ defmodule Diplomat.Transaction do
     %Transaction{id: id, state: :begun}
   end
 
-
-  def begin!(block) when is_function(block), do: begin!(@iso_level, block)
-  def begin!(iso_level, block) when is_function(block) do
+  def begin(block) when is_function(block), do: begin(@iso_level, block)
+  def begin(iso_level, block) when is_function(block) do
     # the try block defines a new scope that isn't accessible in the rescue block
     # so we need to begin the transaction here so both have access to the var
-    transaction = begin!(iso_level)
+    transaction = begin(iso_level)
     try do
       transaction
       |> block.()
-      |> commit!
+      |> commit
     rescue
       e ->
         rollback(transaction)
@@ -51,7 +51,7 @@ defmodule Diplomat.Transaction do
     end
   end
 
-  def begin!(iso_level \\ @iso_level) do
+  def begin(iso_level \\ @iso_level) do
     TransRequest.new(isolation_level: iso_level)
     |> Diplomat.Client.begin_transaction
     |> case do
@@ -62,7 +62,7 @@ defmodule Diplomat.Transaction do
        end
   end
 
-  def commit!(%Transaction{}=t) do
+  def commit(%Transaction{}=t) do
     t
     |> to_commit_proto
     |> Diplomat.Client.commit

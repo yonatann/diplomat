@@ -41,22 +41,37 @@ defmodule Diplomat.Entity do
     }
   end
 
-  #
-  def save(%Entity{}=entity) do
-    # might need to allocate ids first...?
-    CommitRequest.new(
-      # for now, just do this w/o a transaction
-      mode: :NON_TRANSACTIONAL,
-      mutation: Mutation.new(
-        insert: [
-          Entity.proto(entity)
-        ]
-      )
-    )
+  def insert(%Entity{}=entity), do: insert([entity])
+  def insert(entities) when is_list(entities) do
+    [insert: proto_list(entities, [])]
+    |> commit_request
     |> Diplomat.Client.commit
     |> case do
       {:ok, resp} -> Key.from_commit_proto(resp)
       any -> any
     end
+  end
+
+  def upsert(%Entity{}=entity), do: upsert([entity])
+  def upsert(entities) when is_list(entities) do
+    [upsert: proto_list(entities, [])]
+    |> commit_request
+    |> Diplomat.Client.commit
+    |> case do
+         {:ok, resp} -> resp
+         any -> any
+    end
+  end
+
+  defp proto_list([], acc), do: Enum.reverse(acc)
+  defp proto_list([e|tail], acc) do
+    proto_list(tail, [Entity.proto(e) | acc])
+  end
+
+  defp commit_request(opts, mode \\ :NON_TRANSACTIONAL) do
+    CommitRequest.new(
+      mode: mode,
+      mutation: Mutation.new(opts)
+    )
   end
 end
