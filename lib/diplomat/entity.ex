@@ -5,6 +5,7 @@ defmodule Diplomat.Entity do
 
   defstruct kind: nil, key: nil, properties: []
 
+  def new(%{}=props), do: %Entity{properties: PropertyList.new(props)}
   def new(%{}=props, kind \\ nil, id \\ nil) do
     %Entity{
       kind: kind,
