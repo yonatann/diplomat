@@ -7,3 +7,4 @@ config/*credentials.json
 !config/test-credentials.json
 /log
 .#*
+/doc/

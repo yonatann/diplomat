@@ -3,7 +3,7 @@ defmodule Diplomat.Mixfile do
 
   def project do
     [app: :diplomat,
-     version: "0.0.2",
+     version: "0.0.3",
      elixir: "~> 1.2",
      description: "A library for interacting with Google's Cloud Datastore",
      build_embedded: Mix.env == :prod,
@@ -36,6 +36,8 @@ defmodule Diplomat.Mixfile do
       # {:chatterbox, github: "joedevivo/chatterbox"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
+      {:ex_doc, ">= 0.0.0", only: [:dev]},
+      {:earmark, ">= 0.0.0"},
       {:uuid, "~> 1.1", only: :test}
     ]
   end
