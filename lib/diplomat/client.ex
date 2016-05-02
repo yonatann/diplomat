@@ -53,6 +53,19 @@ defmodule Diplomat.Client do
     end
   end
 
+  def run_query(req) do
+    req
+    |> Diplomat.Proto.RunQueryRequest.encode
+    |> call("runQuery")
+    |> case do
+         {:ok, body} ->
+           result = body |> Diplomat.Proto.RunQueryResponse.decode
+           Enum.map result.batch.entity_result, fn(e) ->
+             Diplomat.Entity.from_proto(e.entity)
+           end
+         any -> any
+    end
+  end
   defp call(data, method) do
     url(method)
     # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
