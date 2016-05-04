@@ -74,6 +74,12 @@ defmodule Diplomat.Value do
     PbVal.new(timestamp_microseconds_value: unix)
   end
 
+  def proto({{y, m, d}, {h, mn, s}}=timestamp) do
+    unix = timestamp |> Timex.DateTime.from_erl |> Timex.to_unix
+    # need this to have microseconds, so multiply by 1_000_000
+    PbVal.new(timestamp_microseconds_value: unix * 1_000_000)
+  end
+
   # if you already have an integer timestamp
   def proto({:time, val}), do: PbVal.new(timestamp_microseconds_value: val)
 

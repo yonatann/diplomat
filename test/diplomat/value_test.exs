@@ -36,6 +36,11 @@ defmodule Diplomat.ValueTest do
     assert val.timestamp_microseconds_value > 0
   end
 
+  # test "timestamp value from erlang time tuple" do
+  #   val = Value.proto({{2016, 5, 4}, {00, 00, 00}})
+
+  # end
+
   test "entity values" do
     val = %{"hello" => "world"} |> Value.proto
     assert %Diplomat.Proto.Entity{} = val.entity_value

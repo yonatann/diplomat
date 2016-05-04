@@ -15,7 +15,7 @@ defmodule Diplomat.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :goth, :exprotobuf, :httpoison]]
+    [applications: [:logger, :goth, :exprotobuf, :httpoison, :timex]]
   end
 
   # Dependencies can be Hex packages:
@@ -34,6 +34,7 @@ defmodule Diplomat.Mixfile do
       {:httpoison, "~> 0.8.0"},
       {:poison, "~> 2.1"},
       # {:chatterbox, github: "joedevivo/chatterbox"},
+      {:timex, "~> 2.0"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
       {:ex_doc, ">= 0.0.0", only: [:dev]},

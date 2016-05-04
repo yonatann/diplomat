@@ -1,7 +1,7 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
   alias Diplomat.Proto.{CommitRequest, Mutation}
-  alias Diplomat.{PropertyList, Key, Entity}
+  alias Diplomat.{Property, PropertyList, Key, Entity}
 
   defstruct kind: nil, key: nil, properties: []
 
@@ -33,6 +33,13 @@ defmodule Diplomat.Entity do
 
   def proto(%Key{}=key, val) do
     proto(Key.proto(key), val)
+  end
+
+  def properties(%Entity{}=ent) do
+    ent.properties
+    |> Enum.reduce %{}, fn(prop, acc)->
+         Map.put(acc, prop.name, Property.raw_value(prop))
+    end
   end
 
   def from_proto(%PbEntity{property: val, key: key}) do

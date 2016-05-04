@@ -98,4 +98,16 @@ defmodule Diplomat.EntityTest do
     # IO.puts "proto: #{inspect Entity.proto(ent)}"
     assert <<_ :: binary>> = ent |> Entity.proto |> Diplomat.Proto.Entity.encode 
   end
+
+  test "I can extract flat properties as a map from an entity" do
+    map = %{"person" => "Phil Burrows"}
+    ent = map |> Entity.new("Person")
+    assert ^map = Entity.properties(ent)
+  end
+
+  test "I can extract nested properties from an entity" do
+    map = %{"person" => %{"name" => "Phil Burrows"}}
+    ent = map |> Entity.new("Person")
+    assert ^map = Entity.properties(ent)
+  end
 end
