@@ -1,5 +1,6 @@
 defmodule Diplomat.Client do
   alias Diplomat.Proto.{Key, Key.PathElement, AllocateIdsRequest}
+  require Logger
 
   @api_version "v1beta2"
 
@@ -71,9 +72,10 @@ defmodule Diplomat.Client do
     # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
-      {:ok, response} ->
-        {:ok, response.body}
-      other           -> other
+      {:ok, %{body: body, status_code: code}} when code in 200..299 ->
+        Logger.info "the response body: #{inspect body}"
+        {:ok, body}
+      {_, response} -> {:error, response.body}
     end
   end
 

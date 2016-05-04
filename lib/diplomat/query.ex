@@ -20,7 +20,6 @@ defmodule Diplomat.Query do
   end
 
   def proto(%Query{query: q, numbered_args: num, named_args: named}) do
-    IO.puts "the numbered: #{inspect num}"
     GqlQuery.new(
       query_string: q,
       number_arg: numbered_args(num),
