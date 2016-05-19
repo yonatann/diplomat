@@ -67,9 +67,35 @@ defmodule Diplomat.Client do
          any -> any
     end
   end
+
+  @chatterbox """
+  # really we just need something in the ssl_options env
+  Application.put_env(:chatterbox, :ssl_options, [])
+  # OR maybe something like:
+  Application.put_env(:chatterbox, :ssl_options, [{:alpn_preferred_protocols, ["h2"]}])
+  {:ok, client} = :h2_client.start_link(:https, 'www.googleapis.com', 443)
+  :h2_client.sync_request(client, headers, body)
+  """
+
   defp call(data, method) do
+    # we need a way to spin up this client at start-up
+    # Application.put_env(:chatterbox, :ssl_options, [{:alpn_preferred_protocols, ["h2"]}])
+    # [_, "//" <> host] = String.split(endpoint, ":")
+    # IO.puts "gonna try it, folks: #{host} --"
+    # {:ok, client} = :h2_client.start_link(:https, String.to_char_list(host), String.to_integer("443"))
+
+    # headers = [{":method", "GET"},
+    #             {":path", "/" <> Path.join([@api_version, "projects", "#{project}:#{method}"])},
+    #             auth_header,
+    #             proto_header
+    #           ]
+    # IO.puts "the headers: #{inspect headers}"
+    # IO.puts "the body: #{inspect data}"
+    # resp = :h2_client.sync_request(client, headers, data)
+
+    # IO.puts "the chatterbox response: #{inspect resp}"
+
     url(method)
-    # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
       {:ok, %{body: body, status_code: code}} when code in 200..299 ->

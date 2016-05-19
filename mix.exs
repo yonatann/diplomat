@@ -33,7 +33,7 @@ defmodule Diplomat.Mixfile do
       {:exprotobuf, "~> 1.0.0"},
       {:httpoison, "~> 0.8.0"},
       {:poison, "~> 2.1"},
-      # {:chatterbox, github: "joedevivo/chatterbox"},
+      {:chatterbox, github: "joedevivo/chatterbox"},
       {:timex, "~> 2.0"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
