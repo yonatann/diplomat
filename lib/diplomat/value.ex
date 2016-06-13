@@ -26,6 +26,9 @@ defmodule Diplomat.Value do
     do: new(val)
   def from_proto(%PbVal{timestamp_microseconds_value: val}) when is_integer(val),
     do: new(val) # need to convert this to a timestamp of some sort
+  def from_proto(%PbVal{key_value: val}) when not is_nil(val) do
+    val |> Diplomat.Key.from_proto |> new
+  end
   def from_proto(%PbVal{entity_value: val}) when not is_nil(val) do
     val |> Diplomat.Entity.from_proto |> new
   end

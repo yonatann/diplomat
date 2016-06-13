@@ -1,7 +1,9 @@
 defmodule Diplomat.ValueTest do
   use ExUnit.Case
-  alias Diplomat.Value
+  alias Diplomat.{Value, Key, Entity}
   alias Diplomat.Proto.Value, as: PbVal
+  alias Diplomat.Proto.Key, as: PbKey
+  alias Diplomat.Proto.Entity, as: PbEntity
 
   # ==== Value.from_proto ======
   test "creating from protobuf struct" do
@@ -11,6 +13,19 @@ defmodule Diplomat.ValueTest do
         val   = %Value{value: i}
         assert val == Value.from_proto(proto)
       end)
+  end
+
+  test "create key from protobuf key" do
+    proto = %PbVal{
+      key_value: %PbKey{
+        path_element: [
+          PbKey.PathElement.new(kind: "User", id: 1)
+        ]
+      }
+    }
+    key = Value.from_proto(proto).value
+    assert key.kind == "User"
+    assert key.id == 1
   end
 
   test "creating from a protobuf struct with a list value" do
