@@ -67,6 +67,21 @@ defmodule Diplomat.Client do
          any -> any
     end
   end
+
+  def lookup(req) do
+    req
+    |> Diplomat.Proto.RunQueryRequest.encode
+    |> call("lookup")
+    |> case do
+         {:ok, body} ->
+           result = body |> Diplomat.Proto.LookupResponse.decode
+           Enum.map result.found, fn(e) ->
+             Diplomat.Entity.from_proto(e.entity)
+           end
+         any -> any
+    end
+  end
+
   defp call(data, method) do
     url(method)
     # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"

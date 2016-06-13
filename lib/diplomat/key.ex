@@ -2,7 +2,7 @@ defmodule Diplomat.Key do
   alias Diplomat.Key
   alias Diplomat.Proto.Key, as: PbKey
   alias Diplomat.Proto.PartitionId, as: PbPartition
-  alias Diplomat.Proto.{MutationResult, CommitResponse}
+  alias Diplomat.Proto.{MutationResult, CommitResponse, LookupRequest}
 
   defstruct id: nil, name: nil, kind: nil, parent: nil, dataset_id: nil, namespace: nil
 
@@ -103,5 +103,14 @@ defmodule Diplomat.Key do
 
     Diplomat.Proto.AllocateIdsRequest.new(key: keys) |> Diplomat.Client.allocate_ids
     # now, just call the api...
+  end
+
+  def get(keys) when is_list(keys) do
+    %LookupRequest {
+      key: Enum.map(keys, &proto(&1))
+    } |> Diplomat.Client.lookup
+  end
+  def get(%__MODULE__{} = key) do
+    get([key])
   end
 end
