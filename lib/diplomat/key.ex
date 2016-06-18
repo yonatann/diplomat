@@ -113,4 +113,24 @@ defmodule Diplomat.Key do
   def get(%__MODULE__{} = key) do
     get([key])
   end
+
+  def urlsafe(%__MODULE__{} = key) do
+    key
+    |> proto
+    |> PbKey.encode
+    |> Base.url_encode64(padding: false)
+  end
+
+  def from_urlsafe(value) when is_bitstring(value) do
+    value
+    |> Base.url_decode64!(padding: false)
+    |> PbKey.decode
+    |> Key.from_proto
+  end
+end
+
+defimpl Poison.Encoder, for: Key do
+  def encode(key, options) do
+    Poison.Encoder.List.encode(Key.path(key), options)
+  end
 end
