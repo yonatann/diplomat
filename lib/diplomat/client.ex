@@ -23,11 +23,9 @@ defmodule Diplomat.Client do
     |> call("commit")
     |> case do
       {:ok, body} ->
-        IO.puts "The response body: #{inspect body}"
         decoded = Diplomat.Proto.CommitResponse.decode(body)
         {:ok, decoded}
       any ->
-        IO.puts "bad response: #{inspect any}"
         any
     end
   end
