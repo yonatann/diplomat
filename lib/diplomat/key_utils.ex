@@ -126,9 +126,12 @@ defmodule KeyUtils do
       {b, data}
     else
       {result, next_data} = do_get_int(data, b, 0, 0)
-      if result > (1 <<< 63) do
-        result = result - (1 <<< 64)
-      end
+      result =
+        if result > (1 <<< 63) do
+          result - (1 <<< 64)
+        else
+          result
+        end
       {result, next_data}
     end
   end
@@ -146,9 +149,12 @@ defmodule KeyUtils do
 
   defp get_int_64(data) do
     {result, next_data} = do_get_int_64(data, 0, 0)
-    if result > (1 <<< 63) do
-      result = result - (1 <<< 64)
-    end
+    result =
+      if result > (1 <<< 63) do
+        result - (1 <<< 64)
+      else
+        result
+      end
     {result, next_data}
   end
 

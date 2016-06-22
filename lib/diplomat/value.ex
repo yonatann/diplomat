@@ -1,6 +1,6 @@
 defmodule Diplomat.Value do
   alias Diplomat.Proto.Value, as: PbVal
-  alias Diplomat.{Entity, Property, Key}
+  alias Diplomat.{Entity, Key}
 
   defstruct value: nil
 

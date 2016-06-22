@@ -71,8 +71,7 @@ defmodule Diplomat.Key do
   def from_commit_proto(%CommitResponse{mutation_result:
                           %MutationResult{
                             insert_auto_id_key: pb_keys,
-                            index_updates: updates}}) do
-
+                            index_updates: _updates}}) do
     pb_keys |> Enum.map(&Key.from_proto/1)
   end
 
@@ -129,8 +128,8 @@ defmodule Diplomat.Key do
   end
 end
 
-defimpl Poison.Encoder, for: Key do
+defimpl Poison.Encoder, for: Diplomat.Key do
   def encode(key, options) do
-    Poison.Encoder.List.encode(Key.path(key), options)
+    Poison.Encoder.List.encode(Diplomat.Key.path(key), options)
   end
 end
