@@ -6,6 +6,7 @@ defmodule Diplomat.Mixfile do
      version: "0.0.4",
      elixir: "~> 1.2",
      description: "A library for interacting with Google's Cloud Datastore",
+     package: package,
      deps: deps]
   end
 
@@ -38,6 +39,14 @@ defmodule Diplomat.Mixfile do
       {:ex_doc, ">= 0.0.0", only: [:dev]},
       {:earmark, ">= 0.0.0"},
       {:uuid, "~> 1.1", only: :test}
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["Phil Burrows"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/peburrows/diplomat"}
     ]
   end
 end
