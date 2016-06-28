@@ -2,7 +2,7 @@ defmodule Diplomat.Key do
   alias Diplomat.Key
   alias Diplomat.Proto.Key, as: PbKey
   alias Diplomat.Proto.PartitionId, as: PbPartition
-  alias Diplomat.Proto.{MutationResult, CommitResponse}
+  alias Diplomat.Proto.{MutationResult, CommitResponse, LookupRequest}
 
   defstruct id: nil, name: nil, kind: nil, parent: nil, dataset_id: nil, namespace: nil
 
@@ -71,8 +71,7 @@ defmodule Diplomat.Key do
   def from_commit_proto(%CommitResponse{mutation_result:
                           %MutationResult{
                             insert_auto_id_key: pb_keys,
-                            index_updates: updates}}) do
-
+                            index_updates: _updates}}) do
     pb_keys |> Enum.map(&Key.from_proto/1)
   end
 
@@ -103,5 +102,34 @@ defmodule Diplomat.Key do
 
     Diplomat.Proto.AllocateIdsRequest.new(key: keys) |> Diplomat.Client.allocate_ids
     # now, just call the api...
+  end
+
+  def get(keys) when is_list(keys) do
+    %LookupRequest {
+      key: Enum.map(keys, &proto(&1))
+    } |> Diplomat.Client.lookup
+  end
+  def get(%__MODULE__{} = key) do
+    get([key])
+  end
+
+  def urlsafe(%__MODULE__{} = key) do
+    key
+    |> proto
+    |> PbKey.encode
+    |> Base.url_encode64(padding: false)
+  end
+
+  def from_urlsafe(value) when is_bitstring(value) do
+    value
+    |> Base.url_decode64!(padding: false)
+    |> PbKey.decode
+    |> Key.from_proto
+  end
+end
+
+defimpl Poison.Encoder, for: Diplomat.Key do
+  def encode(key, options) do
+    Poison.Encoder.List.encode(Diplomat.Key.path(key), options)
   end
 end

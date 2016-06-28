@@ -1,6 +1,5 @@
 defmodule Diplomat.Client do
   alias Diplomat.Proto.{Key, Key.PathElement, AllocateIdsRequest}
-  require Logger
 
   @api_version "v1beta2"
 
@@ -23,11 +22,9 @@ defmodule Diplomat.Client do
     |> call("commit")
     |> case do
       {:ok, body} ->
-        IO.puts "The response body: #{inspect body}"
         decoded = Diplomat.Proto.CommitResponse.decode(body)
         {:ok, decoded}
       any ->
-        IO.puts "bad response: #{inspect any}"
         any
     end
   end
@@ -67,13 +64,27 @@ defmodule Diplomat.Client do
          any -> any
     end
   end
+
+  def lookup(req) do
+    req
+    |> Diplomat.Proto.RunQueryRequest.encode
+    |> call("lookup")
+    |> case do
+         {:ok, body} ->
+           result = body |> Diplomat.Proto.LookupResponse.decode
+           Enum.map result.found, fn(e) ->
+             Diplomat.Entity.from_proto(e.entity)
+           end
+         any -> any
+    end
+  end
+
   defp call(data, method) do
     url(method)
     # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
       {:ok, %{body: body, status_code: code}} when code in 200..299 ->
-        Logger.info "the response body: #{inspect body}"
         {:ok, body}
       {_, response} -> {:error, response.body}
     end

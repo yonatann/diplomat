@@ -37,9 +37,9 @@ defmodule Diplomat.Entity do
 
   def properties(%Entity{}=ent) do
     ent.properties
-    |> Enum.reduce %{}, fn(prop, acc)->
+    |> Enum.reduce(%{}, fn(prop, acc) ->
          Map.put(acc, prop.name, Property.raw_value(prop))
-    end
+    end)
   end
 
   def from_proto(%PbEntity{property: val, key: key}) do

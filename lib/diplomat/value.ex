@@ -1,6 +1,6 @@
 defmodule Diplomat.Value do
   alias Diplomat.Proto.Value, as: PbVal
-  alias Diplomat.{Entity, Property}
+  alias Diplomat.{Entity, Key}
 
   defstruct value: nil
 
@@ -26,6 +26,9 @@ defmodule Diplomat.Value do
     do: new(val)
   def from_proto(%PbVal{timestamp_microseconds_value: val}) when is_integer(val),
     do: new(val) # need to convert this to a timestamp of some sort
+  def from_proto(%PbVal{key_value: val}) when not is_nil(val) do
+    val |> Diplomat.Key.from_proto |> new
+  end
   def from_proto(%PbVal{entity_value: val}) when not is_nil(val) do
     val |> Diplomat.Entity.from_proto |> new
   end
@@ -47,9 +50,14 @@ defmodule Diplomat.Value do
   def proto(val) when is_integer(val),   do: PbVal.new(integer_value: val)
   def proto(val) when is_float(val),     do: PbVal.new(double_value:  val)
 
+  def proto(%Key{} = val) do
+    PbVal.new(key_value: Key.proto(val))
+  end
+
   def proto(%{}=val) do
     PbVal.new(entity_value: Diplomat.Entity.proto(val))
   end
+
 
   # is_binary isn't very good since there's a separate blob...
   def proto(val) when is_binary(val) do
@@ -61,10 +69,6 @@ defmodule Diplomat.Value do
 
   def proto(val) when is_bitstring(val) do
     PbVal.new(blob_value:    val)
-  end
-
-  def proto(%{}=val) do
-    PbVal.new(entity_value: Diplomat.Entity.new(val))
   end
 
   # accepts an erlang timestamp object
