@@ -1,7 +1,7 @@
 defmodule Diplomat.Client do
   alias Diplomat.Proto.{Key, Key.PathElement, AllocateIdsRequest}
 
-  @api_version "v1beta2"
+  @api_version "v1beta3"
 
   def allocate_ids(req) do
     req
@@ -58,7 +58,7 @@ defmodule Diplomat.Client do
     |> case do
          {:ok, body} ->
            result = body |> Diplomat.Proto.RunQueryResponse.decode
-           Enum.map result.batch.entity_result, fn(e) ->
+           Enum.map result.batch.entity_results, fn(e) ->
              Diplomat.Entity.from_proto(e.entity)
            end
          any -> any

@@ -1,6 +1,6 @@
 defmodule Diplomat.Query do
   alias Diplomat.{Query, Value}
-  alias Diplomat.Proto.{GqlQuery, GqlQueryArg, RunQueryRequest}
+  alias Diplomat.Proto.{GqlQuery, GqlQueryParameter, RunQueryRequest}
 
   defstruct query: nil, numbered_args: [], named_args: %{}
 
@@ -22,28 +22,34 @@ defmodule Diplomat.Query do
   def proto(%Query{query: q, numbered_args: num, named_args: named}) do
     GqlQuery.new(
       query_string: q,
-      number_arg: numbered_args(num),
-      name_arg:   named_args(named)
+      allow_literals: allow_literals(num, named),
+      positional_bindings: positional_bindings(num),
+      named_bindings:   named_bindings(named)
     )
   end
 
   def execute(%__MODULE__{}=q) do
     RunQueryRequest.new(
-      gql_query: q |> Query.proto
+      query_type: {:gql_query, q |> Query.proto}
     ) |> Diplomat.Client.run_query
   end
 
-  defp numbered_args(args) do
-    Enum.map args, fn(i) ->
+  defp positional_bindings(args) do
+    args
+    |> Enum.map(fn(i) ->
       val = i |> Value.new |> Value.proto
-      GqlQueryArg.new(value: val)
-    end
+      GqlQueryParameter.new(parameter_type: {:value, val})
+    end)
   end
 
-  defp named_args(args) do
-    Enum.map args, fn {k, v} ->
+  defp named_bindings(args) do
+    args
+    |> Enum.map(fn {k, v} ->
       val = v |> Value.new |> Value.proto
-      GqlQueryArg.new(value: val, name: to_string(k))
-    end
+      {to_string(k), GqlQueryParameter.new(parameter_type: {:value, val})}
+    end)
   end
+
+  defp allow_literals([], {}), do: false
+  defp allow_literals(num, named), do: true
 end

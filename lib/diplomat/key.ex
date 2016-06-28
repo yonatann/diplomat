@@ -1,10 +1,11 @@
 defmodule Diplomat.Key do
   alias Diplomat.Key
   alias Diplomat.Proto.Key, as: PbKey
+  alias Diplomat.Proto.Key.PathElement, as: PbPathElement
   alias Diplomat.Proto.PartitionId, as: PbPartition
   alias Diplomat.Proto.{MutationResult, CommitResponse, LookupRequest}
 
-  defstruct id: nil, name: nil, kind: nil, parent: nil, dataset_id: nil, namespace: nil
+  defstruct id: nil, name: nil, kind: nil, parent: nil, project_id: nil, namespace: nil
 
   def new(kind),
     do: %__MODULE__{kind: kind}
@@ -23,42 +24,49 @@ defmodule Diplomat.Key do
 
   defp from_path([], parent),
     do: parent
-  defp from_path([[kind, id]|tail], parent) do
-    from_path(tail, new(kind, id, parent))
-  end
+  defp from_path([[kind, id]|tail], parent),
+    do: from_path(tail, new(kind, id, parent))
 
+  def proto(nil) do
+    nil
+  end
   def proto(%__MODULE__{}=key) do
     path_els = key
     |> path
     |> proto([])
     |> Enum.reverse
 
-    partition = case (key.dataset_id || key.namespace) do
+    partition = case (key.project_id || key.namespace) do
       nil -> nil
-      _   -> Diplomat.Proto.PartitionId.new(dataset_id: key.dataset_id, namespace: key.namespace)
+      _   -> PbPartition.new(project_id: key.project_id, namespace: key.namespace)
     end
 
-    PbKey.new(partition_id: partition, path_element: path_els)
+    PbKey.new(partition_id: partition, path: path_els)
   end
 
   defp proto([], acc), do: acc
   defp proto([[kind, id]|tail], acc) when is_integer(id) do
-    proto(tail, [PbKey.PathElement.new(kind: kind, id: id)|acc])
+    proto(tail, [PbPathElement.new(kind: kind, id_type: {:id, id})|acc])
   end
   defp proto([[kind, name]|tail], acc) do
-    proto(tail, [PbKey.PathElement.new(kind: kind, name: name)|acc])
+    proto(tail, [PbPathElement.new(kind: kind, id_type: {:name, name})|acc])
   end
 
   def from_proto(nil), do: nil
-  def from_proto(%PbKey{partition_id: nil, path_element: path_el}),
+  def from_proto(%PbKey{partition_id: nil, path: path_el}),
     do: from_path_proto(path_el, [])
-  def from_proto(%PbKey{partition_id: %PbPartition{dataset_id: did, namespace: ns}, path_element: path_el}) do
-    %{from_path_proto(path_el, []) | dataset_id: did, namespace: ns}
-  end
+  def from_proto(%PbKey{partition_id: %PbPartition{project_id: pid, namespace_id: ns}, path: path_el}),
+    do: %{from_path_proto(path_el, []) | project_id: pid, namespace: ns}
 
-  defp from_path_proto([], acc), do: acc |> Enum.reverse |> from_path
+  defp from_path_proto([], acc) do
+    acc |> Enum.reverse |> from_path
+  end
   defp from_path_proto([head|tail], acc) do
-    from_path_proto(tail, [[head.kind, (head.id || head.name)]|acc])
+    case head.id_type do
+      {:id, id} -> from_path_proto(tail, [[head.kind, id]|acc])
+      # in case value return as char list
+      {:name, name} -> from_path_proto(tail, [[head.kind, to_string(name)]|acc])
+    end
   end
 
   def path(key) do
@@ -68,11 +76,9 @@ defmodule Diplomat.Key do
   end
 
   # I hate the way this method looks
-  def from_commit_proto(%CommitResponse{mutation_result:
-                          %MutationResult{
-                            insert_auto_id_key: pb_keys,
-                            index_updates: _updates}}) do
-    pb_keys |> Enum.map(&Key.from_proto/1)
+  def from_commit_proto(%CommitResponse{mutation_results: results}) do
+    results
+    |> Enum.map(&Key.from_proto(&1.key))
   end
 
   def incomplete?(%__MODULE__{id: nil, name: nil}), do: true
@@ -89,10 +95,8 @@ defmodule Diplomat.Key do
     generate_path tail, [[key.kind, (key.id || key.name)] | acc]
   end
 
-  def from_allocate_ids_proto(%Diplomat.Proto.AllocateIdsResponse{key: keys}) do
-    Enum.map keys, fn(k) ->
-      __MODULE__.from_proto(k)
-    end
+  def from_allocate_ids_proto(%Diplomat.Proto.AllocateIdsResponse{keys: keys}) do
+    keys |> Enum.map(&from_proto(&1))
   end
 
   def allocate_ids(type, count \\ 1) do
@@ -106,7 +110,7 @@ defmodule Diplomat.Key do
 
   def get(keys) when is_list(keys) do
     %LookupRequest {
-      key: Enum.map(keys, &proto(&1))
+      keys: Enum.map(keys, &proto(&1))
     } |> Diplomat.Client.lookup
   end
   def get(%__MODULE__{} = key) do

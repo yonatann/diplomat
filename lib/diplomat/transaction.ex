@@ -6,7 +6,6 @@ defmodule Diplomat.Transaction do
   alias Diplomat.Proto.CommitRequest
   alias Diplomat.{Transaction, Entity, Key}
 
-
   @doc """
   ```
   Transaction.begin

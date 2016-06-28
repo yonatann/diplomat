@@ -29,7 +29,7 @@ defmodule KeyUtils do
 
   defp encode(%Key{} = key) do
     result =
-      put_int(106) <> put_prefix_string(key.dataset_id) <> put_int(114) <> put_int(path_byte_size(key)) <> encode(Key.path(key))
+      put_int(106) <> put_prefix_string(key.project_id) <> put_int(114) <> put_int(path_byte_size(key)) <> encode(Key.path(key))
     if key.namespace do
       result <> put_int(162) <> put_prefix_string(key.namespace)
     else
@@ -87,17 +87,17 @@ defmodule KeyUtils do
 
   defp decode(data) do
     {106, data} = get_int(data)
-    {dataset_id, data} = get_prefix_string(data)
+    {project_id, data} = get_prefix_string(data)
     {114, data} = get_int(data)
     {path_size, data} = get_int(data)
     <<path_data::binary-size(path_size), left::binary>> = data
     key = path_data |> decode_path([]) |> Key.from_path
     if left == "" do
-      %{key | dataset_id: dataset_id}
+      %{key | project_id: project_id}
     else
       {162, data} = get_int(left)
       {namespace, data} = get_prefix_string(data)
-      %{key | dataset_id: dataset_id, namespace: namespace}
+      %{key | project_id: project_id, namespace: namespace}
     end
   end
 

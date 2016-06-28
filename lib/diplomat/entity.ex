@@ -1,52 +1,69 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
   alias Diplomat.Proto.{CommitRequest, Mutation}
-  alias Diplomat.{Property, PropertyList, Key, Entity}
+  alias Diplomat.{Key, Value, Entity}
 
-  defstruct kind: nil, key: nil, properties: []
+  defstruct kind: nil, key: nil, properties: %{}
 
-  def new(%{}=props), do: %Entity{properties: PropertyList.new(props)}
+  def new(%{}=props) do
+    %Entity{properties: value_properties(props)}
+  end
   def new(%{}=props, kind \\ nil, id \\ nil) do
     %Entity{
       kind: kind,
       key: Key.new(kind, id),
-      properties: PropertyList.new(props)
+      properties: value_properties(props)
     }
   end
 
-  def add_property(%Entity{}=entity, %Diplomat.Property{}=prop) do
-    %{entity | properties: [prop|entity.properties]}
+  defp value_properties(%{} = props) do
+    props
+    |> Map.to_list
+    |> Enum.map(fn {name, value} -> {name, Value.new(value)} end)
+    |> Enum.into(%{})
   end
 
-  def proto(%Entity{key: nil, properties: val}),
-    do: proto(val)
-  def proto(%Entity{key: key, properties: val}),
-    do: proto(key, val)
+  def proto(%Entity{key: key, properties: properties} = entity) do
+    pb_properties =
+      properties
+      |> Map.to_list
+      |> Enum.map(fn {name, value} ->
+        {name, Value.proto(value)}
+      end)
 
-  def proto(val),
-    do: PbEntity.new(property: PropertyList.proto(val))
-
-  def proto(%Diplomat.Proto.Key{}=key, val) do
-    PbEntity.new(key:      key,
-                 property: PropertyList.proto(val) )
+    %PbEntity{
+      key: key |> Key.proto,
+      properties: pb_properties
+    }
+  end
+  def proto(%{} = properties) do
+    proto(%Entity{key: nil, properties: properties})
   end
 
-  def proto(%Key{}=key, val) do
-    proto(Key.proto(key), val)
+  def from_proto(%PbEntity{key: pb_key, properties: pb_properties}) do
+    properties =
+      pb_properties
+      |> Enum.map(fn {name, pb_value} ->
+        {name, Value.from_proto(pb_value)}
+      end)
+      |> Enum.into(%{})
+    key = Key.from_proto(pb_key)
+    %Entity{
+      kind: if key do key.kind else nil end,
+      key: key,
+      properties: properties
+    }
   end
 
-  def properties(%Entity{}=ent) do
-    ent.properties
-    |> Enum.reduce(%{}, fn(prop, acc) ->
-         Map.put(acc, prop.name, Property.raw_value(prop))
+  def properties(%Entity{properties: properties}) do
+    properties
+    |> Enum.map(fn {key, %Value{value: value}} ->
+      case value do
+        %Entity{} -> {key, value |> properties}
+        _ -> {key, value}
+      end
     end)
-  end
-
-  def from_proto(%PbEntity{property: val, key: key}) do
-    %__MODULE__{
-      key: Key.from_proto(key),
-      properties: PropertyList.from_proto(val)
-    }
+    |> Enum.into(%{})
   end
 
   def insert(%Entity{}=entity), do: insert([entity])

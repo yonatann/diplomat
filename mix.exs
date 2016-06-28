@@ -17,11 +17,11 @@ defmodule Diplomat.Mixfile do
   defp deps do
     [
       {:goth, "~> 0.1.1"},
-      {:exprotobuf, "~> 1.0.0"},
+      {:exprotobuf, git: "https://github.com/kiennt/exprotobuf"},
       {:httpoison, "~> 0.8.0"},
       {:poison, "~> 2.1"},
       # {:chatterbox, github: "joedevivo/chatterbox"},
-      {:timex, "~> 2.0"},
+      {:timex, "~> 2.2.1"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
       {:ex_doc, ">= 0.0.0", only: [:dev]},
