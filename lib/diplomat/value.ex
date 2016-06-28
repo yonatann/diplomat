@@ -19,38 +19,26 @@ defmodule Diplomat.Value do
 
   def new(val), do: %__MODULE__{value: val}
 
-  def from_proto(%PbVal{value_type: {:boolean_value, val}}) when is_boolean(val) do
-    new(val)
-  end
-  def from_proto(%PbVal{value_type: {:integer_value, val}}) when is_integer(val) do
-    new(val)
-  end
-  def from_proto(%PbVal{value_type: {:double_value, val}}) when is_float(val) do
-    new(val)
-  end
-  def from_proto(%PbVal{value_type: {:string_value, val}}) when is_binary(val) do
-    new(val)
-  end
-  def from_proto(%PbVal{value_type: {:blob_value, val}}) when is_bitstring(val) do
-    new(val)
-  end
-  def from_proto(%PbVal{value_type: {:key_value, %PbKey{} = val}}) do
-    val |> Diplomat.Key.from_proto |> new
-  end
-  def from_proto(%PbVal{value_type: {:entity_value, %PbEntity{} = val}}) do
-    val |> Diplomat.Entity.from_proto |> new
-  end
-  def from_proto(%PbVal{value_type: {:array_value, %PbArray{} = val}}) do
-    val.values
-    |> Enum.map(&Diplomat.Value.from_proto(&1))
-    |> new
-  end
-  def from_proto(%PbVal{value_type: {:timestamp_value, %PbTimestamp{} = val}}) do
-    new({0, val.seconds, round(val.nanos / 1_000)})
-  end
-  def from_proto(%PbVal{value_type: {:geo_point_value, %PbLatLng{} = val}}) do
-    new({val.latitude, val.longitude})
-  end
+  def from_proto(%PbVal{value_type: {:boolean_value, val}}) when is_boolean(val),
+    do: new(val)
+  def from_proto(%PbVal{value_type: {:integer_value, val}}) when is_integer(val),
+    do: new(val)
+  def from_proto(%PbVal{value_type: {:double_value, val}}) when is_float(val),
+    do: new(val)
+  def from_proto(%PbVal{value_type: {:string_value, val}}) when is_binary(val),
+    do: new(val)
+  def from_proto(%PbVal{value_type: {:blob_value, val}}) when is_bitstring(val),
+    do: new(val)
+  def from_proto(%PbVal{value_type: {:key_value, %PbKey{} = val}}),
+    do: val |> Diplomat.Key.from_proto |> new
+  def from_proto(%PbVal{value_type: {:entity_value, %PbEntity{} = val}}),
+    do: val |> Diplomat.Entity.from_proto |> new
+  def from_proto(%PbVal{value_type: {:array_value, %PbArray{} = val}}),
+    do: val.values |> Enum.map(&Diplomat.Value.from_proto(&1)) |> new
+  def from_proto(%PbVal{value_type: {:timestamp_value, %PbTimestamp{} = val}}),
+    do: new({0, val.seconds, round(val.nanos / 1_000)})
+  def from_proto(%PbVal{value_type: {:geo_point_value, %PbLatLng{} = val}}),
+    do: new({val.latitude, val.longitude})
   def from_proto(_),
     do: new(nil)
 
