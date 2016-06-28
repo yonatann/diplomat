@@ -3,7 +3,7 @@ defmodule Diplomat.Mixfile do
 
   def project do
     [app: :diplomat,
-     version: "0.0.4",
+     version: "0.0.5",
      elixir: ">= 1.2.5",
      description: "A library for interacting with Google's Cloud Datastore",
      package: package,
