@@ -24,8 +24,8 @@ defmodule Diplomat.Value do
     do: new(val)
   def from_proto(%PbVal{value_type: {:double_value, val}}) when is_float(val),
     do: new(val)
-  def from_proto(%PbVal{value_type: {:string_value, val}}) when is_binary(val),
-    do: new(val)
+  def from_proto(%PbVal{value_type: {:string_value, val}}),
+    do: new(to_string(val))
   def from_proto(%PbVal{value_type: {:blob_value, val}}) when is_bitstring(val),
     do: new(val)
   def from_proto(%PbVal{value_type: {:key_value, %PbKey{} = val}}),
@@ -34,8 +34,11 @@ defmodule Diplomat.Value do
     do: val |> Diplomat.Entity.from_proto |> new
   def from_proto(%PbVal{value_type: {:array_value, %PbArray{} = val}}),
     do: val.values |> Enum.map(&Diplomat.Value.from_proto(&1)) |> new
-  def from_proto(%PbVal{value_type: {:timestamp_value, %PbTimestamp{} = val}}),
-    do: new(DateTime.from_unix!(val.seconds * 1_000_000_000 + val.nanos, :nanoseconds))
+  def from_proto(%PbVal{value_type: {:timestamp_value, %PbTimestamp{} = val}}) do
+    val.seconds * 1_000_000_000 + (val.nanos || 0)
+    |> DateTime.from_unix!(:nanoseconds)
+    |> new
+  end
   def from_proto(%PbVal{value_type: {:geo_point_value, %PbLatLng{} = val}}),
     do: new({val.latitude, val.longitude})
   def from_proto(_),
