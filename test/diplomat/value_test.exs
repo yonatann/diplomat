@@ -51,7 +51,7 @@ defmodule Diplomat.ValueTest do
   end
 
   test "timestamp values" do
-    val = Value.proto(:os.timestamp)
+    val = Value.proto(DateTime.utc_now)
     timestamp = elem(val.value_type, 1)
     assert timestamp.seconds > 0
   end
