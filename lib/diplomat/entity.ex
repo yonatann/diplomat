@@ -23,7 +23,7 @@ defmodule Diplomat.Entity do
     |> Enum.into(%{})
   end
 
-  def proto(%Entity{key: key, properties: properties} = entity) do
+  def proto(%Entity{key: key, properties: properties}) do
     pb_properties =
       properties
       |> Map.to_list

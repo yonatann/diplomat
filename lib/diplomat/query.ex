@@ -51,5 +51,5 @@ defmodule Diplomat.Query do
   end
 
   defp allow_literals([], {}), do: false
-  defp allow_literals(num, named), do: true
+  defp allow_literals(_, _), do: true
 end

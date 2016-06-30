@@ -1,6 +1,4 @@
 defmodule Diplomat.Client do
-  alias Diplomat.Proto.{Key, Key.PathElement, AllocateIdsRequest}
-
   @api_version "v1beta3"
 
   def allocate_ids(req) do

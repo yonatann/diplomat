@@ -3,7 +3,7 @@ defmodule Diplomat.Key do
   alias Diplomat.Proto.Key, as: PbKey
   alias Diplomat.Proto.Key.PathElement, as: PbPathElement
   alias Diplomat.Proto.PartitionId, as: PbPartition
-  alias Diplomat.Proto.{MutationResult, CommitResponse, LookupRequest}
+  alias Diplomat.Proto.{CommitResponse, LookupRequest}
 
   defstruct id: nil, name: nil, kind: nil, parent: nil, project_id: nil, namespace: nil
 
