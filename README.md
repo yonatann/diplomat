@@ -12,7 +12,7 @@ Diplomat is an Elixir library for interacting with Google's Cloud Datastore.
   end
   ```
 
-  2. Make sure you've configured [https://github.com/peburrows/goth](Goth) with your credentials:
+  2. Make sure you've configured [Goth](https://github.com/peburrows/goth) with your credentials:
 
   ```elixir
   config :goth,
