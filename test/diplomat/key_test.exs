@@ -97,8 +97,8 @@ defmodule Diplomat.KeyTest do
   test "converting to single key a protobuf" do
     pb = Key.new("Book", "Romeo+Juliet") |> Key.proto
     assert %PbKey{
-      path_element: [
-        %PbKey.PathElement{kind: "Book", name: "Romeo+Juliet", id: nil}
+      path: [
+        %PbKey.PathElement{kind: "Book", id_type: {:name, "Romeo+Juliet"}}
       ]
     } = pb
 
@@ -108,9 +108,9 @@ defmodule Diplomat.KeyTest do
   test "converting a key with ancestors to a protobuf" do
     pb = Key.new("Book", "Romeo+Juliet", Key.new("Collection", "Shakespeare")) |> Key.proto
     assert %PbKey{
-      path_element: [
-        %PbKey.PathElement{kind: "Collection", name: "Shakespeare"},
-        %PbKey.PathElement{kind: "Book", name: "Romeo+Juliet"}
+      path: [
+        %PbKey.PathElement{kind: "Collection", id_type: {:name, "Shakespeare"}},
+        %PbKey.PathElement{kind: "Book", id_type: {:name, "Romeo+Juliet"}}
       ]
     } = pb
 
@@ -118,22 +118,24 @@ defmodule Diplomat.KeyTest do
   end
 
   test "creating a key from a protobuf struct" do
-    assert %Key{
+    key = %Key{
       kind: "User",
       name: "dev@philburrows.com",
-      dataset_id: "diplo",
+      project_id: "diplo",
       namespace: "test"
-    } = %PbKey{
-      partition_id: Diplomat.Proto.PartitionId.new(dataset_id: "diplo", namespace: "test"),
-      path_element: [
-        PbKey.PathElement.new(kind: "User", name: "dev@philburrows.com")
+    }
+    pb_key = %PbKey{
+      partition_id: Diplomat.Proto.PartitionId.new(project_id: "diplo", namespace_id: "test"),
+      path: [
+        PbKey.PathElement.new(kind: "User", id_type: {:name, "dev@philburrows.com"})
       ]
-    } |> Key.from_proto
+    }
+    assert key = pb_key |> Key.from_proto
   end
 
   test "creating a key from a nested key protobuf struct" do
     assert %Key{
-      dataset_id: "diplo",
+      project_id: "diplo",
       namespace: "test",
       kind: "Name",
       parent: %Key{
@@ -145,11 +147,11 @@ defmodule Diplomat.KeyTest do
         }
       }
     } = %PbKey{
-      partition_id: Diplomat.Proto.PartitionId.new(dataset_id: "diplo", namespace: "test"),
-      path_element: [
-        PbKey.PathElement.new(kind: "User", name: "dev@philburrows.com"),
-        PbKey.PathElement.new(kind: "UserDetails", id: 1),
-        PbKey.PathElement.new(kind: "Name", name: "phil-name")
+      partition_id: Diplomat.Proto.PartitionId.new(project_id: "diplo", namespace_id: "test"),
+      path: [
+        PbKey.PathElement.new(kind: "User", id_type: {:name, "dev@philburrows.com"}),
+        PbKey.PathElement.new(kind: "UserDetails", id_type: {:id, 1}),
+        PbKey.PathElement.new(kind: "Name", id_type: {:name, "phil-name"})
       ]
     } |> Key.from_proto
   end

@@ -18,7 +18,7 @@ defmodule Diplomat.TransactionTest do
 
   test "beginning a transaction calls the server with a BeginTransactionRequest and returns a Transaction struct", %{bypass: bypass, project: project} do
     Bypass.expect bypass, fn conn ->
-      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/beginTransaction}, conn.request_path
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:beginTransaction}, conn.request_path)
       resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
       Plug.Conn.resp conn, 201, resp
     end
@@ -51,7 +51,7 @@ defmodule Diplomat.TransactionTest do
 
   test "rolling back a transaction calls the server with the RollbackRequest", %{bypass: bypass, project: project} do
     Bypass.expect bypass, fn conn ->
-      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/rollback}, conn.request_path
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:rollback}, conn.request_path)
       Plug.Conn.resp conn, 200, <<>> # the rsponse is empty
     end
 
@@ -67,7 +67,7 @@ defmodule Diplomat.TransactionTest do
       )
     )
     Bypass.expect bypass, fn conn ->
-      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       response = commit |> CommitResponse.encode
       Plug.Conn.resp conn, 201, response
     end
@@ -118,11 +118,11 @@ defmodule Diplomat.TransactionTest do
   def assert_begin_and_commit!(%{bypass: bypass, project: project}) do
     Bypass.expect bypass, fn conn ->
       if Regex.match? ~r{beginTransaction}, conn.request_path do
-        assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/beginTransaction}, conn.request_path
+        assert Regex.match?(~r{/v1beta3/projects/#{project}:beginTransaction}, conn.request_path)
         resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
         Plug.Conn.resp conn, 201, resp
       else
-        assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path
+        assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
         resp = CommitResponse.new(
           mutation_result: MutationResult.new(
             index_updates: 0,

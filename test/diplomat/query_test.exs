@@ -1,7 +1,7 @@
 defmodule Diplomat.QueryTest do
   use ExUnit.Case
   alias Diplomat.{Query, Value}
-  alias Diplomat.Proto.{GqlQuery, GqlQueryArg}
+  alias Diplomat.Proto.{GqlQuery, GqlQueryParameter}
 
   test "we can construct a query" do
     q = "select * from Assets where title = @1"
@@ -16,8 +16,9 @@ defmodule Diplomat.QueryTest do
     arg_val = Value.new(arg) |> Value.proto
     assert %GqlQuery{
       query_string: ^query,
-      number_arg: [%GqlQueryArg{value: ^arg_val}],
-      name_arg: []
+      allow_literals: true,
+      positional_bindings: [%GqlQueryParameter{parameter_type: {:value, ^arg_val}}],
+      named_bindings: []
     } = Query.new(query, [arg]) |> Query.proto
     assert <<_::binary>> = Query.new(query, [arg]) |> Query.proto |> GqlQuery.encode
   end
@@ -31,8 +32,11 @@ defmodule Diplomat.QueryTest do
   test "that atom keys in named arg maps are converted to strings" do
     {q, args} = {"select @what", %{what: "sure"}}
     query = Query.new(q, args)
+    val = "sure" |> Value.proto
     assert %GqlQuery{
-      name_arg: [%GqlQueryArg{name: "what"}]
+      named_bindings: [
+        {"what", %GqlQueryParameter{parameter_type: {:value, val}}}
+      ]
     } = query |> Query.proto
   end
 

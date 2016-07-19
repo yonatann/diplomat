@@ -1,7 +1,6 @@
 defmodule Diplomat.Entity.AllocateIdsTest do
   use ExUnit.Case
   alias Diplomat.Key
-  alias Diplomat.Proto.Key, as: PbKey
   alias Diplomat.Proto.AllocateIdsResponse, as: PbAllocateResp
 
   setup do
@@ -11,7 +10,7 @@ defmodule Diplomat.Entity.AllocateIdsTest do
   end
 
   test "generating keys from an AllocateIdsResponse" do
-    keys = PbAllocateResp.new(key: [
+    keys = PbAllocateResp.new(keys: [
       Key.new("Log", 1) |> Key.proto,
       Key.new("Log", 2) |> Key.proto,
       Key.new("Log", 3) |> Key.proto
@@ -31,11 +30,11 @@ defmodule Diplomat.Entity.AllocateIdsTest do
     {:ok, project} = Goth.Config.get(:project_id)
 
     Bypass.expect bypass, fn conn ->
-      assert Regex.match?(~r{/datastore/v1beta2/datasets/#{project}/allocateIds}, conn.request_path)
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:allocateIds}, conn.request_path)
       keys = Enum.map 1..count, fn(i)->
                Key.new(kind, i) |> Key.proto
              end
-      resp = PbAllocateResp.new(key: keys) |> PbAllocateResp.encode
+      resp = PbAllocateResp.new(keys: keys) |> PbAllocateResp.encode
       Plug.Conn.resp conn, 201, resp
     end
 

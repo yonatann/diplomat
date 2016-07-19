@@ -14,13 +14,11 @@ defmodule Diplomat.Entity.InsertTest do
 
   test "extracting keys from CommitResponse" do
     response = CommitResponse.new(
-      mutation_result: MutationResult.new(
-        index_updates: 2,
-        insert_auto_id_key: [
-          Key.new("Thing", 1) |> Key.proto,
-          Key.new("Thing", 2) |> Key.proto
-        ]
-      )
+      mutation_results: [
+        MutationResult.new(key: Key.new("Thing", 1) |> Key.proto),
+        MutationResult.new(key: Key.new("Thing", 2) |> Key.proto),
+      ],
+      index_updates: 2,
     )
 
     keys = response |> Key.from_commit_proto
@@ -40,12 +38,12 @@ defmodule Diplomat.Entity.InsertTest do
     )
 
     Bypass.expect bypass, fn conn ->
-      assert Regex.match?(~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path)
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
-        mutation_result: MutationResult.new(
-          index_updates: 1,
-          insert_auto_id_key: [ (Key.new(kind, name) |> Key.proto) ]
-        )
+        mutation_results: [
+          MutationResult.new(key: Key.new(kind, name) |> Key.proto)
+        ],
+        index_updates: 1,
       ) |> CommitResponse.encode
       Plug.Conn.resp conn, 201, resp
     end
