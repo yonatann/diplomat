@@ -2,7 +2,7 @@ defmodule Diplomat.Entity.UpsertTest do
   use ExUnit.Case
 
   alias Diplomat.Entity
-  alias Diplomat.Proto.{CommitResponse, MutationResult}
+  alias Diplomat.Proto.{CommitResponse, CommitRequest, Mutation, MutationResult}
 
   setup do
     bypass = Bypass.open
@@ -22,6 +22,13 @@ defmodule Diplomat.Entity.UpsertTest do
     )
 
     Bypass.expect bypass, fn conn ->
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+      assert %CommitRequest{
+        mutations: [
+          %Mutation{operation: {:upsert, _ent}}
+        ]
+      } = CommitRequest.decode(body)
+
       assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
         mutation_result: MutationResult.new(
@@ -36,4 +43,3 @@ defmodule Diplomat.Entity.UpsertTest do
     assert %CommitResponse{} = resp
   end
 end
-

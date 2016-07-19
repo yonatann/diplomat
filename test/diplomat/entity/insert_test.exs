@@ -1,7 +1,9 @@
 defmodule Diplomat.Entity.InsertTest do
   use ExUnit.Case
   alias Diplomat.Proto.CommitResponse
+  alias Diplomat.Proto.CommitRequest
   alias Diplomat.Proto.MutationResult
+  alias Diplomat.Proto.Mutation
   alias Diplomat.Proto.Key, as: PbKey
 
   alias Diplomat.{Key, Entity}
@@ -28,6 +30,18 @@ defmodule Diplomat.Entity.InsertTest do
     end
   end
 
+  test "building a CommitRequest from a single Entity mutation" do
+    entity = Entity.new(%{"name" => "phil"}, "Person", "phil-burrows")
+    ent_proto = Entity.proto(entity)
+    assert %CommitRequest{
+      mutations: [
+        %Mutation{operation: {:insert, ^ent_proto}}
+      ],
+      mode: :NON_TRANSACTIONAL
+    } = Entity.commit_request([{:insert, ent_proto}])
+
+  end
+
   test "inserting a single entity", %{bypass: bypass} do
     {:ok, project} = Goth.Config.get(:project_id)
     {kind, name}   = {"TestBook", "my-book-unique-id"}
@@ -38,6 +52,14 @@ defmodule Diplomat.Entity.InsertTest do
     )
 
     Bypass.expect bypass, fn conn ->
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+      # ensure we're passing in the correct data
+      assert %CommitRequest{
+        mutations: [
+          %Mutation{operation: {:insert, _ent}}
+        ]
+      } = CommitRequest.decode(body)
+
       assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
         mutation_results: [

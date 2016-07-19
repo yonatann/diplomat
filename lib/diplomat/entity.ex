@@ -68,7 +68,8 @@ defmodule Diplomat.Entity do
 
   def insert(%Entity{}=entity), do: insert([entity])
   def insert(entities) when is_list(entities) do
-    [insert: proto_list(entities, [])]
+    proto_list(entities, [])
+    |> Enum.map(fn(e)-> {:insert, e} end)
     |> commit_request
     |> Diplomat.Client.commit
     |> case do
@@ -80,7 +81,8 @@ defmodule Diplomat.Entity do
   # at some point we should validate the entity keys
   def upsert(%Entity{}=entity), do: upsert([entity])
   def upsert(entities) when is_list(entities) do
-    [upsert: proto_list(entities, [])]
+    proto_list(entities, [])
+    |> Enum.map(fn(e)-> {:upsert, e} end)
     |> commit_request
     |> Diplomat.Client.commit
     |> case do
@@ -94,10 +96,19 @@ defmodule Diplomat.Entity do
     proto_list(tail, [Entity.proto(e) | acc])
   end
 
-  defp commit_request(opts, mode \\ :NON_TRANSACTIONAL) do
+  @nodoc
+  def commit_request(opts, mode \\ :NON_TRANSACTIONAL) do
     CommitRequest.new(
       mode: mode,
-      mutation: Mutation.new(opts)
+      mutations: extract_mutations(opts, [])
     )
+  end
+
+  defp extract_mutations([], acc), do: acc
+  defp extract_mutations([{:insert, ent}|tail], acc) do
+    extract_mutations(tail, [Mutation.new(operation: {:insert, ent})|acc])
+  end
+  defp extract_mutations([{:upsert, ent}|tail], acc) do
+    extract_mutations(tail, [Mutation.new(operation: {:upsert, ent})|acc])
   end
 end
