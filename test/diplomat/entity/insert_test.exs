@@ -4,7 +4,6 @@ defmodule Diplomat.Entity.InsertTest do
   alias Diplomat.Proto.CommitRequest
   alias Diplomat.Proto.MutationResult
   alias Diplomat.Proto.Mutation
-  alias Diplomat.Proto.Key, as: PbKey
 
   alias Diplomat.{Key, Entity}
 
@@ -37,8 +36,8 @@ defmodule Diplomat.Entity.InsertTest do
       mutations: [
         %Mutation{operation: {:insert, ^ent_proto}}
       ],
-      mode: :NON_TRANSACTIONAL
-    } = Entity.commit_request([{:insert, ent_proto}])
+      mode: :TRANSACTIONAL
+    } = Entity.commit_request([{:insert, entity}])
 
   end
 

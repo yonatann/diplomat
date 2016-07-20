@@ -68,7 +68,7 @@ defmodule Diplomat.Entity do
 
   def insert(%Entity{}=entity), do: insert([entity])
   def insert(entities) when is_list(entities) do
-    proto_list(entities, [])
+    entities
     |> Enum.map(fn(e)-> {:insert, e} end)
     |> commit_request
     |> Diplomat.Client.commit
@@ -81,7 +81,7 @@ defmodule Diplomat.Entity do
   # at some point we should validate the entity keys
   def upsert(%Entity{}=entity), do: upsert([entity])
   def upsert(entities) when is_list(entities) do
-    proto_list(entities, [])
+    entities
     |> Enum.map(fn(e)-> {:upsert, e} end)
     |> commit_request
     |> Diplomat.Client.commit
@@ -97,18 +97,32 @@ defmodule Diplomat.Entity do
   end
 
   @nodoc
-  def commit_request(opts, mode \\ :NON_TRANSACTIONAL) do
+  def commit_request(opts), do: commit_request(opts, :TRANSACTIONAL)
+  def commit_request(opts, mode) do
     CommitRequest.new(
       mode: mode,
       mutations: extract_mutations(opts, [])
     )
   end
-
-  defp extract_mutations([], acc), do: acc
-  defp extract_mutations([{:insert, ent}|tail], acc) do
-    extract_mutations(tail, [Mutation.new(operation: {:insert, ent})|acc])
+  def commit_request(opts, mode, trans) do
+    CommitRequest.new(
+      mode: mode,
+      transaction_selector: {:transaction, trans.id},
+      mutations: extract_mutations(opts, [])
+    )
   end
-  defp extract_mutations([{:upsert, ent}|tail], acc) do
-    extract_mutations(tail, [Mutation.new(operation: {:upsert, ent})|acc])
+
+  def extract_mutations([], acc), do: Enum.reverse(acc)
+  def extract_mutations([{:insert, ent}|tail], acc) do
+    extract_mutations(tail, [Mutation.new(operation: {:insert, proto(ent)})|acc])
+  end
+  def extract_mutations([{:upsert, ent}|tail], acc) do
+    extract_mutations(tail, [Mutation.new(operation: {:upsert, proto(ent)})|acc])
+  end
+  def extract_mutations([{:update, ent}|tail], acc) do
+    extract_mutations(tail, [Mutation.new(operation: {:update, proto(ent)})|acc])
+  end
+  def extract_mutations([{:delete, key}|tail], acc) do
+    extract_mutations(tail, [Mutation.new(operation: {:delete, Key.proto(key)})|acc])
   end
 end
