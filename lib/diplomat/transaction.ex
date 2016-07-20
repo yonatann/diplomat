@@ -1,7 +1,6 @@
 defmodule Diplomat.Transaction do
   alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
   alias Diplomat.Proto.BeginTransactionRequest,  as: TransRequest
-  alias Diplomat.Proto.Mutation
   alias Diplomat.Proto.RollbackRequest
   alias Diplomat.Proto.CommitRequest
   alias Diplomat.{Transaction, Entity, Key}
@@ -79,7 +78,7 @@ defmodule Diplomat.Transaction do
 
   def insert(%Transaction{}=t, %Entity{}=e), do: insert(t, [e])
   def insert(%Transaction{}=t, []), do: t
-  def insert(%Transaction{}=t, [%Entity{key: key}=e | tail]) do
+  def insert(%Transaction{}=t, [%Entity{}=e | tail]) do
     insert(%{t | mutations: [{:insert, e} | t.mutations]}, tail)
   end
 
