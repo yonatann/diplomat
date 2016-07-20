@@ -22,8 +22,8 @@ defmodule Diplomat.Mixfile do
       {:poison, "~> 2.1"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
-      {:ex_doc, ">= 0.0.0", only: [:dev]},
-      {:earmark, ">= 0.0.0"},
+      {:ex_doc, "~> 0.13.0", only: [:dev]},
+      {:earmark, "~> 1.0"},
       {:uuid, "~> 1.1", only: :test},
     ]
   end
