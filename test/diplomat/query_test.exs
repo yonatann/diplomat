@@ -7,7 +7,7 @@ defmodule Diplomat.QueryTest do
     q = "select * from Assets where title = @1"
     title = "20,000 Leagues Under The Sea"
     query = Query.new(q, [title])
-    assert %Query{query: ^q, numbered_args: [title]} = query
+    assert %Query{query: ^q, numbered_args: [^title]} = query
   end
 
   test "we can convert a Query to a Proto.GqlQuery" do
@@ -35,7 +35,7 @@ defmodule Diplomat.QueryTest do
     val = "sure" |> Value.proto
     assert %GqlQuery{
       named_bindings: [
-        {"what", %GqlQueryParameter{parameter_type: {:value, val}}}
+        {"what", %GqlQueryParameter{parameter_type: {:value, ^val}}}
       ]
     } = query |> Query.proto
   end

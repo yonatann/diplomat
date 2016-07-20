@@ -96,7 +96,6 @@ defmodule Diplomat.Entity do
     proto_list(tail, [Entity.proto(e) | acc])
   end
 
-  @nodoc
   def commit_request(opts), do: commit_request(opts, :NON_TRANSACTIONAL)
   def commit_request(opts, mode) do
     CommitRequest.new(

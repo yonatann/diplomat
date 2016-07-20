@@ -36,7 +36,7 @@ defmodule Diplomat.Entity.InsertTest do
       mutations: [
         %Mutation{operation: {:insert, ^ent_proto}}
       ],
-      mode: :TRANSACTIONAL
+      mode: :NON_TRANSACTIONAL
     } = Entity.commit_request([{:insert, entity}])
 
   end

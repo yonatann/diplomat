@@ -1,7 +1,6 @@
 defmodule Diplomat.EntityTest do
   use ExUnit.Case
   alias Diplomat.{Entity, Value, Key}
-  alias Diplomat.Proto.Key, as: PbKey
   alias Diplomat.Proto.Value, as: PbValue
   alias Diplomat.Proto.Entity, as: PbEntity
 

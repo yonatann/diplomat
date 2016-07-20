@@ -35,7 +35,20 @@ defmodule Diplomat.Transaction do
     %Transaction{id: id, state: :begun}
   end
 
+  def begin(iso_level \\ @iso_level)
   def begin(block) when is_function(block), do: begin(@iso_level, block)
+
+  def begin(_iso_level) do
+    TransRequest.new
+    |> Diplomat.Client.begin_transaction
+    |> case do
+         {:ok, resp} ->
+           resp |> Transaction.from_begin_response
+         other ->
+           other
+       end
+  end
+
   def begin(iso_level, block) when is_function(block) do
     # the try block defines a new scope that isn't accessible in the rescue block
     # so we need to begin the transaction here so both have access to the var
@@ -51,16 +64,6 @@ defmodule Diplomat.Transaction do
     end
   end
 
-  def begin(iso_level \\ @iso_level) do
-    TransRequest.new
-    |> Diplomat.Client.begin_transaction
-    |> case do
-         {:ok, resp} ->
-           resp |> Transaction.from_begin_response
-         other ->
-           other
-       end
-  end
 
   def commit(%Transaction{}=t) do
     t

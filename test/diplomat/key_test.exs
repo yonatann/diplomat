@@ -130,7 +130,7 @@ defmodule Diplomat.KeyTest do
         PbKey.PathElement.new(kind: "User", id_type: {:name, "dev@philburrows.com"})
       ]
     }
-    assert key = pb_key |> Key.from_proto
+    assert ^key = pb_key |> Key.from_proto
   end
 
   test "creating a key from a nested key protobuf struct" do

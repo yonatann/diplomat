@@ -1,9 +1,8 @@
 defmodule Diplomat.ValueTest do
   use ExUnit.Case
-  alias Diplomat.{Value, Key, Entity}
+  alias Diplomat.Value
   alias Diplomat.Proto.Value, as: PbVal
   alias Diplomat.Proto.Key, as: PbKey
-  alias Diplomat.Proto.Entity, as: PbEntity
 
   # ==== Value.from_proto ======
   test "creating from protobuf struct" do
