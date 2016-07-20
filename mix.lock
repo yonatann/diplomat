@@ -4,7 +4,7 @@
   "cowlib": {:hex, :cowlib, "1.0.2", "9d769a1d062c9c3ac753096f868ca121e2730b9a377de23dec0f7e08b1df84ee", [:make], []},
   "earmark": {:hex, :earmark, "1.0.1", "2c2cd903bfdc3de3f189bd9a8d4569a075b88a8981ded9a0d95672f6e2b63141", [:mix], []},
   "ex_doc": {:hex, :ex_doc, "0.13.0", "aa2f8fe4c6136a2f7cfc0a7e06805f82530e91df00e2bff4b4362002b43ada65", [:mix], [{:earmark, "~> 1.0", [hex: :earmark, optional: false]}]},
-  "exprotobuf": {:git, "https://github.com/bitwalker/exprotobuf", "2b39c5b717d9c9323cd2ce7956d40a12f34d602a", []},
+  "exprotobuf": {:hex, :exprotobuf, "1.0.1", "064bfcd209846894c49b090b5fb9304f4e948df685b797edd6d576487e9e5916", [:mix], [{:gpb, "~> 3.21.3", [hex: :gpb, optional: false]}]},
   "fs": {:hex, :fs, "0.9.2", "ed17036c26c3f70ac49781ed9220a50c36775c6ca2cf8182d123b6566e49ec59", [:rebar], []},
   "goth": {:hex, :goth, "0.1.4", "00709909d967cc76960e4860262467fbb0ac9cb256ae0653e5437bc2694815db", [:mix], [{:poison, "~> 2.1", [hex: :poison, optional: false]}, {:httpoison, "~> 0.8.0", [hex: :httpoison, optional: false]}, {:json_web_token, "~> 0.2.5", [hex: :json_web_token, optional: false]}]},
   "gpb": {:hex, :gpb, "3.21.3", "a2d02364c7d8d0c14102c86d70532ab3868f1b9da9812998b2e5d2e9e7f32bfb", [:rebar, :make], []},

@@ -17,7 +17,7 @@ defmodule Diplomat.Mixfile do
   defp deps do
     [
       {:goth, "~> 0.1.4"},
-      {:exprotobuf, git: "https://github.com/bitwalker/exprotobuf"},
+      {:exprotobuf, "~> 1.0.1"},
       {:httpoison, "~> 0.8.0"},
       {:poison, "~> 2.1"},
       {:bypass, "~> 0.1", only: :test},
