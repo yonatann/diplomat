@@ -26,18 +26,13 @@ defmodule Diplomat.Transaction do
   ```
   """
 
-  @iso_level :SNAPSHOT
-
   defstruct id: nil, state: :init, mutations: []
 
   def from_begin_response(%TransResponse{transaction: id}) do
     %Transaction{id: id, state: :begun}
   end
 
-  def begin(iso_level \\ @iso_level)
-  def begin(block) when is_function(block), do: begin(@iso_level, block)
-
-  def begin(_iso_level) do
+  def begin do
     TransRequest.new
     |> Diplomat.Client.begin_transaction
     |> case do
@@ -48,10 +43,10 @@ defmodule Diplomat.Transaction do
        end
   end
 
-  def begin(iso_level, block) when is_function(block) do
+  def begin(block) when is_function(block) do
     # the try block defines a new scope that isn't accessible in the rescue block
     # so we need to begin the transaction here so both have access to the var
-    transaction = begin(iso_level)
+    transaction = begin()
     try do
       transaction
       |> block.()
