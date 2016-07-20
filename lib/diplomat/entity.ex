@@ -97,7 +97,7 @@ defmodule Diplomat.Entity do
   end
 
   @nodoc
-  def commit_request(opts), do: commit_request(opts, :TRANSACTIONAL)
+  def commit_request(opts), do: commit_request(opts, :NON_TRANSACTIONAL)
   def commit_request(opts, mode) do
     CommitRequest.new(
       mode: mode,
