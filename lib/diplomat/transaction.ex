@@ -59,8 +59,8 @@ defmodule Diplomat.Transaction do
   end
 
 
-  def commit(%Transaction{}=t) do
-    t
+  def commit(%Transaction{}=transaction) do
+    transaction
     |> to_commit_proto
     |> Diplomat.Client.commit
   end
@@ -71,6 +71,7 @@ defmodule Diplomat.Transaction do
     |> Diplomat.Client.rollback
   end
 
+  # we could clean this up with some macros
   def insert(%Transaction{}=t, %Entity{}=e), do: insert(t, [e])
   def insert(%Transaction{}=t, []), do: t
   def insert(%Transaction{}=t, [%Entity{}=e | tail]) do
