@@ -50,9 +50,12 @@ defmodule Diplomat.ValueTest do
   end
 
   test "timestamp values" do
-    val = Value.proto(DateTime.utc_now)
+    now = DateTime.utc_now
+    val = Value.proto(now)
     timestamp = elem(val.value_type, 1)
-    assert timestamp.seconds > 0
+    assert timestamp.seconds == DateTime.to_unix(now, :seconds)
+    {ms, _} = now.microsecond
+    assert timestamp.nanos == ms * 1_000
   end
 
   test "geo coordinate values" do

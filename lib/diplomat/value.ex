@@ -64,7 +64,7 @@ defmodule Diplomat.Value do
   def proto(val) when is_bitstring(val),
     do: PbVal.new(value_type: {:blob_value, val})
   def proto(%DateTime{}=val) do
-    timestamp = DateTime.to_unix(val)
+    timestamp = DateTime.to_unix(val, :nanoseconds)
     PbVal.new(
       value_type: {
         :timestamp_value,
