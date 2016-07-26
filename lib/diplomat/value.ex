@@ -77,7 +77,8 @@ defmodule Diplomat.Value do
     do: PbVal.new(value_type: {:key_value, Key.proto(val)})
   def proto(%{} = val),
     do: PbVal.new(value_type: {:entity_value, Diplomat.Entity.proto(val)})
-  def proto({latitude, longitude}),
+  # might need to be more explicit about this...
+  def proto({latitude, longitude}) when is_float(latitude) and is_float(longitude),
     do: PbVal.new(value_type: {:geo_point_value, %PbLatLng{latitude: latitude, longitude: longitude}})
   def proto([head|tail]),
     do: proto_list([head|tail], [])

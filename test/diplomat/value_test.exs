@@ -55,6 +55,13 @@ defmodule Diplomat.ValueTest do
     assert timestamp.seconds > 0
   end
 
+  test "geo coordinate values" do
+    val = Value.proto({-37.5, 75.6})
+    assert %PbVal{
+      value_type: {:geo_point_value, %Diplomat.Proto.LatLng{latitude: -37.5, longitude: 75.6}}
+    } == val
+  end
+
   test "a flat list value" do
     val = [1,2,3] |> Value.proto
     {:array_value, array} = val.value_type
