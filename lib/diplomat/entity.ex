@@ -19,7 +19,7 @@ defmodule Diplomat.Entity do
   defp value_properties(%{} = props) do
     props
     |> Map.to_list
-    |> Enum.map(fn {name, value} -> {name, Value.new(value)} end)
+    |> Enum.map(fn {name, value} -> {to_string(name), Value.new(value)} end)
     |> Enum.into(%{})
   end
 
@@ -28,7 +28,7 @@ defmodule Diplomat.Entity do
       properties
       |> Map.to_list
       |> Enum.map(fn {name, value} ->
-        {name, Value.proto(value)}
+        {to_string(name), Value.proto(value)}
       end)
 
     %PbEntity{

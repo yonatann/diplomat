@@ -97,8 +97,13 @@ defmodule Diplomat.EntityTest do
     assert <<_ :: binary>> = ent |> Entity.proto |> Diplomat.Proto.Entity.encode
   end
 
-  test "properties" do
+  test "pulling properties properties" do
     ent = %{"person" => %{"firstName" => "Phil"}} |> Entity.new("Person")
-    ent |> Entity.properties
+    assert %{"person" => %{"firstName" => "Phil"}} == ent |> Entity.properties
+  end
+
+  test "property names are converted to strings" do
+    entity = Entity.new(%{:hello => "world"}, "CodeSnippet")
+    assert %{"hello" => "world"} == Entity.properties(entity)
   end
 end
