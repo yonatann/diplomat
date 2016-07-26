@@ -94,7 +94,9 @@ defmodule Diplomat.ValueTest do
   end
 
   test "a null value" do
-    assert %Diplomat.Proto.Value{} == Value.proto(nil)
+    assert %PbVal{
+      value_type: {:null_value, :NULL_VALUE}
+    } = Value.proto(nil)
   end
 
   test "converting from a Value struct to the proto version" do

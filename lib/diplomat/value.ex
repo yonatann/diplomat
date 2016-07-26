@@ -46,7 +46,7 @@ defmodule Diplomat.Value do
 
   # convert to protocol buffer struct
   def proto(nil),
-    do: PbVal.new
+    do: PbVal.new(value_type: {:null_value, :NULL_VALUE})
   def proto(%__MODULE__{value: val}),
     do: proto(val)
   def proto(val) when is_boolean(val),
