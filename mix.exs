@@ -16,9 +16,9 @@ defmodule Diplomat.Mixfile do
 
   defp deps do
     [
-      {:goth, "~> 0.1.4"},
+      {:goth, "~> 0.1.6"},
       {:exprotobuf, "~> 1.0.1"},
-      {:httpoison, "~> 0.8.0"},
+      {:httpoison, "~> 0.9.0"},
       {:poison, "~> 2.1"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
