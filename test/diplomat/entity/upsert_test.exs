@@ -2,7 +2,7 @@ defmodule Diplomat.Entity.UpsertTest do
   use ExUnit.Case
 
   alias Diplomat.Entity
-  alias Diplomat.Proto.{CommitResponse, MutationResult}
+  alias Diplomat.Proto.{CommitResponse, CommitRequest, Mutation, MutationResult}
 
   setup do
     bypass = Bypass.open
@@ -11,7 +11,7 @@ defmodule Diplomat.Entity.UpsertTest do
   end
 
   test "upserting a single Entity", %{bypass: bypass} do
-    entity = Entity.new(%{title: "20k Leagues", author: "Jules Verne"}, "Book", "20k-key")
+    # entity = Entity.new(%{title: "20k Leagues", author: "Jules Verne"}, "Book", "20k-key")
 
     {:ok, project} = Goth.Config.get(:project_id)
     {kind, name}   = {"TestBook", "my-book-unique-id"}
@@ -22,7 +22,14 @@ defmodule Diplomat.Entity.UpsertTest do
     )
 
     Bypass.expect bypass, fn conn ->
-      assert Regex.match?(~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path)
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+      assert %CommitRequest{
+        mutations: [
+          %Mutation{operation: {:upsert, _ent}}
+        ]
+      } = CommitRequest.decode(body)
+
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
         mutation_result: MutationResult.new(
           index_updates: 1,
@@ -36,4 +43,3 @@ defmodule Diplomat.Entity.UpsertTest do
     assert %CommitResponse{} = resp
   end
 end
-

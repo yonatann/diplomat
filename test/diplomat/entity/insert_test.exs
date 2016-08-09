@@ -1,8 +1,9 @@
 defmodule Diplomat.Entity.InsertTest do
   use ExUnit.Case
   alias Diplomat.Proto.CommitResponse
+  alias Diplomat.Proto.CommitRequest
   alias Diplomat.Proto.MutationResult
-  alias Diplomat.Proto.Key, as: PbKey
+  alias Diplomat.Proto.Mutation
 
   alias Diplomat.{Key, Entity}
 
@@ -14,13 +15,11 @@ defmodule Diplomat.Entity.InsertTest do
 
   test "extracting keys from CommitResponse" do
     response = CommitResponse.new(
-      mutation_result: MutationResult.new(
-        index_updates: 2,
-        insert_auto_id_key: [
-          Key.new("Thing", 1) |> Key.proto,
-          Key.new("Thing", 2) |> Key.proto
-        ]
-      )
+      mutation_results: [
+        MutationResult.new(key: Key.new("Thing", 1) |> Key.proto),
+        MutationResult.new(key: Key.new("Thing", 2) |> Key.proto),
+      ],
+      index_updates: 2,
     )
 
     keys = response |> Key.from_commit_proto
@@ -28,6 +27,18 @@ defmodule Diplomat.Entity.InsertTest do
     Enum.each keys, fn(k)->
       assert %Key{} = k
     end
+  end
+
+  test "building a CommitRequest from a single Entity mutation" do
+    entity = Entity.new(%{"name" => "phil"}, "Person", "phil-burrows")
+    ent_proto = Entity.proto(entity)
+    assert %CommitRequest{
+      mutations: [
+        %Mutation{operation: {:insert, ^ent_proto}}
+      ],
+      mode: :NON_TRANSACTIONAL
+    } = Entity.commit_request([{:insert, entity}])
+
   end
 
   test "inserting a single entity", %{bypass: bypass} do
@@ -40,12 +51,20 @@ defmodule Diplomat.Entity.InsertTest do
     )
 
     Bypass.expect bypass, fn conn ->
-      assert Regex.match?(~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path)
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+      # ensure we're passing in the correct data
+      assert %CommitRequest{
+        mutations: [
+          %Mutation{operation: {:insert, _ent}}
+        ]
+      } = CommitRequest.decode(body)
+
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
-        mutation_result: MutationResult.new(
-          index_updates: 1,
-          insert_auto_id_key: [ (Key.new(kind, name) |> Key.proto) ]
-        )
+        mutation_results: [
+          MutationResult.new(key: Key.new(kind, name) |> Key.proto)
+        ],
+        index_updates: 1,
       ) |> CommitResponse.encode
       Plug.Conn.resp conn, 201, resp
     end

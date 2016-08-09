@@ -3,6 +3,7 @@ defmodule Diplomat.TransactionTest do
 
   alias Diplomat.{Transaction, Entity, Key}
   alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
+  alias Diplomat.Proto.BeginTransactionRequest,  as: TransRequest
   alias Diplomat.Proto.{CommitRequest, CommitResponse, MutationResult, Mutation, RollbackResponse}
 
   setup do
@@ -18,7 +19,11 @@ defmodule Diplomat.TransactionTest do
 
   test "beginning a transaction calls the server with a BeginTransactionRequest and returns a Transaction struct", %{bypass: bypass, project: project} do
     Bypass.expect bypass, fn conn ->
-      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/beginTransaction}, conn.request_path
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+
+      assert %TransRequest{project_id: nil} = TransRequest.decode(body)
+
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:beginTransaction}, conn.request_path)
       resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
       Plug.Conn.resp conn, 201, resp
     end
@@ -29,21 +34,24 @@ defmodule Diplomat.TransactionTest do
 
   test "converting a transaction to a CommitRequest" do
     t = %Transaction{id: <<1,2,3>>, state: :begun,
-                     updates: [Entity.new(%{phil: "burrows"}, "Person", "phil-burrows")],
-                     inserts: [Entity.new(%{jimmy: "allen"},  "Person", 12234324)],
-                     deletes:  [Key.new("Person", "that-one-guy")]
-      }
+                     mutations: [
+                       {:update, Entity.new(%{phil: "burrows"}, "Person", "phil-burrows")},
+                       {:insert, Entity.new(%{jimmy: "allen"}, "Person", 12234324)},
+                       {:delete, Key.new("Person", "that-one-guy")}
+                     ]
+                    }
 
     commit = CommitRequest.new(
       mode: :TRANSACTIONAL,
-      transaction: <<1,2,3>>,
-      mutation: Mutation.new(
-        update: [Entity.new(%{phil: "burrows"}, "Person", "phil-burrows") |> Entity.proto],
-        upsert: [],
-        insert: [Entity.new(%{jimmy: "allen"}, "Person", 12234324) |> Entity.proto],
-        insert_auto_id: [],
-        delete: [Key.new("Person", "that-one-guy") |> Key.proto]
-      )
+      transaction_selector: {:transaction, <<1,2,3>>},
+      mutations: [
+        Mutation.new(operation:
+          {:update, (Entity.new(%{phil: "burrows"}, "Person", "phil-burrows") |> Entity.proto)}),
+        Mutation.new(operation:
+          {:insert, (Entity.new(%{jimmy: "allen"}, "Person", 12234324) |> Entity.proto)}),
+        Mutation.new(operation:
+          {:delete, (Key.new("Person", "that-one-guy") |> Key.proto)})
+      ]
     )
 
     assert ^commit = Transaction.to_commit_proto(t)
@@ -51,7 +59,7 @@ defmodule Diplomat.TransactionTest do
 
   test "rolling back a transaction calls the server with the RollbackRequest", %{bypass: bypass, project: project} do
     Bypass.expect bypass, fn conn ->
-      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/rollback}, conn.request_path
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:rollback}, conn.request_path)
       Plug.Conn.resp conn, 200, <<>> # the rsponse is empty
     end
 
@@ -67,7 +75,7 @@ defmodule Diplomat.TransactionTest do
       )
     )
     Bypass.expect bypass, fn conn ->
-      assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path
+      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       response = commit |> CommitResponse.encode
       Plug.Conn.resp conn, 201, response
     end
@@ -83,46 +91,46 @@ defmodule Diplomat.TransactionTest do
   test "we can add inserts to a transaction" do
     e = Entity.new(%{abraham: "lincoln"}, "Body", 123)
     t = %Transaction{id: 123} |> Transaction.insert(e)
-    assert Enum.count(t.inserts) == 1
-    assert Enum.at(t.inserts, 0) == e
+    assert Enum.count(t.mutations) == 1
+    assert Enum.at(t.mutations, 0) == {:insert, e}
   end
 
-  test "we can add insert_auto_ids to a transaction" do
-    e = Entity.new(%{abraham: "lincoln"}, "Body")
-    t = %Transaction{id: 123} |> Transaction.insert(e)
-    assert Enum.count(t.insert_auto_ids) == 1
-    assert Enum.at(t.insert_auto_ids, 0) == e
-  end
+  # test "we can add insert_auto_ids to a transaction" do
+  #   e = Entity.new(%{abraham: "lincoln"}, "Body")
+  #   t = %Transaction{id: 123} |> Transaction.insert(e)
+  #   assert Enum.count(t.insert_auto_ids) == 1
+  #   assert Enum.at(t.insert_auto_ids, 0) == e
+  # end
 
   test "we can add upserts to a transaction" do
     e = Entity.new(%{whatever: "yes"}, "Thing", 123)
     t = %Transaction{id: 123} |> Transaction.upsert(e)
-    assert Enum.count(t.upserts) == 1
-    assert Enum.at(t.upserts, 0) == e
+    assert Enum.count(t.mutations) == 1
+    assert Enum.at(t.mutations, 0) == {:upsert, e}
   end
 
   test "we can add updates to a transaction" do
     e = Entity.new(%{whatever: "yes"}, "Thing", 123)
     t = %Transaction{id: 123} |> Transaction.update(e)
-    assert Enum.count(t.updates) == 1
-    assert Enum.at(t.updates, 0) == e
+    assert Enum.count(t.mutations) == 1
+    assert Enum.at(t.mutations, 0) == {:update, e}
   end
 
   test "we can add deletes to a transaction" do
     k = Key.new("Person", 123)
     t = %Transaction{id: 123} |> Transaction.delete(k)
-    assert Enum.count(t.deletes) == 1
-    assert Enum.at(t.deletes, 0) == k
+    assert Enum.count(t.mutations) == 1
+    assert Enum.at(t.mutations, 0) == {:delete, k}
   end
 
   def assert_begin_and_commit!(%{bypass: bypass, project: project}) do
     Bypass.expect bypass, fn conn ->
       if Regex.match? ~r{beginTransaction}, conn.request_path do
-        assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/beginTransaction}, conn.request_path
+        assert Regex.match?(~r{/v1beta3/projects/#{project}:beginTransaction}, conn.request_path)
         resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
         Plug.Conn.resp conn, 201, resp
       else
-        assert Regex.match? ~r{/datastore/v1beta2/datasets/#{project}/commit}, conn.request_path
+        assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
         resp = CommitResponse.new(
           mutation_result: MutationResult.new(
             index_updates: 0,

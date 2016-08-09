@@ -3,30 +3,28 @@ defmodule Diplomat.Mixfile do
 
   def project do
     [app: :diplomat,
-     version: "0.0.5",
-     elixir: ">= 1.2.5",
+     version: "0.1.0",
+     elixir: ">= 1.3.0",
      description: "A library for interacting with Google's Cloud Datastore",
      package: package,
      deps: deps]
   end
 
   def application do
-    [applications: [:logger, :goth, :exprotobuf, :httpoison, :timex]]
+    [applications: [:logger, :goth, :exprotobuf, :httpoison]]
   end
 
   defp deps do
     [
-      {:goth, "~> 0.1.1"},
-      {:exprotobuf, "~> 1.0.0"},
-      {:httpoison, "~> 0.8.0"},
+      {:goth, "~> 0.2.0"},
+      {:exprotobuf, "~> 1.0.1"},
+      {:httpoison, "~> 0.9.0"},
       {:poison, "~> 2.1"},
-      # {:chatterbox, github: "joedevivo/chatterbox"},
-      {:timex, "~> 2.0"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
-      {:ex_doc, ">= 0.0.0", only: [:dev]},
-      {:earmark, ">= 0.0.0"},
-      {:uuid, "~> 1.1", only: :test}
+      {:ex_doc, "~> 0.13.0", only: :dev},
+      {:earmark, "~> 1.0", only: :dev},
+      {:uuid, "~> 1.1", only: :test},
     ]
   end
 
