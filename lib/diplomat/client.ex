@@ -79,7 +79,6 @@ defmodule Diplomat.Client do
 
   defp call(data, method) do
     url(method)
-    # "https://www.googleapis.com/datastore/v1beta2/datasets/vitalsource-gc/commit"
     |> HTTPoison.post(data, [auth_header, proto_header])
     |> case do
       {:ok, %{body: body, status_code: code}} when code in 200..299 ->
@@ -103,8 +102,8 @@ defmodule Diplomat.Client do
   defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
   defp project do
-    {:ok, project} = Goth.Config.get(:project_id)
-    project
+    {:ok, project_id} = Goth.Config.get(:project_id)
+    project_id
   end
 
   defp api_scope, do: api_scope(@api_version)

@@ -10,10 +10,10 @@ defmodule Diplomat.Value do
   defstruct value: nil
 
   def new(val=%{__struct__: _}) do
-    %__MODULE__{ value: val }
+    %__MODULE__{value: val}
   end
   def new(%{}=val) do
-    %__MODULE__{ value: Entity.new(val) }
+    %__MODULE__{value: Entity.new(val)}
   end
 
   def new(val), do: %__MODULE__{value: val}
