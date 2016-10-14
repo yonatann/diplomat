@@ -76,4 +76,21 @@ defmodule Diplomat.Entity.InsertTest do
     assert retkey.kind == kind
     assert retkey.name == name
   end
+
+  test "a failed insert", %{bypass: bypass} do
+    {:ok, project} = Goth.Config.get(:project_id)
+
+    Bypass.expect bypass, fn conn ->
+      resp = <<8, 3, 18, 22, 69, 110, 116, 105, 116, 121, 32, 105, 115,
+        32, 109, 105, 115, 115, 105, 110, 103, 32, 107, 101, 121, 46>>
+      Plug.Conn.resp conn, 400, resp
+    end
+
+    assert {:error, status} = Entity.new(%{"a" => 1}) |> Entity.insert
+    assert %Diplomat.Proto.Status{
+      code: 3,
+      details: [],
+      message: "Entity is missing key."
+    } = status
+  end
 end

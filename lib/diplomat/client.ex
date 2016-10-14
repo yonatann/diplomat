@@ -19,11 +19,11 @@ defmodule Diplomat.Client do
     |> Diplomat.Proto.CommitRequest.encode
     |> call("commit")
     |> case do
-      {:ok, body} ->
-        decoded = Diplomat.Proto.CommitResponse.decode(body)
-        {:ok, decoded}
-      any ->
-        any
+         {:ok, body} ->
+           decoded = Diplomat.Proto.CommitResponse.decode(body)
+           {:ok, decoded}
+         any ->
+           any
     end
   end
 
@@ -83,7 +83,7 @@ defmodule Diplomat.Client do
     |> case do
       {:ok, %{body: body, status_code: code}} when code in 200..299 ->
         {:ok, body}
-      {_, response} -> {:error, response.body}
+      {_, response} -> {:error, Diplomat.Proto.Status.decode(response.body)}
     end
   end
 
