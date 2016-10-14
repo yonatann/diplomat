@@ -106,4 +106,15 @@ defmodule Diplomat.EntityTest do
     entity = Entity.new(%{:hello => "world"}, "CodeSnippet")
     assert %{"hello" => "world"} == Entity.properties(entity)
   end
+
+  test "building an entity with a custom key" do
+    entity = Entity.new(%{"hi" => "there"}, %Key{kind: "Message", namespace: "custom"})
+    assert %Entity{
+      properties: %{},
+      key: %Key{
+        kind: "Message",
+        namespace: "custom"
+      }
+    } = entity
+  end
 end
