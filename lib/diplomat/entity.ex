@@ -5,9 +5,17 @@ defmodule Diplomat.Entity do
 
   defstruct kind: nil, key: nil, properties: %{}
 
-  def new(%{}=props) do
-    %Entity{properties: value_properties(props)}
+  def new(%{}=props),
+    do: %Entity{properties: value_properties(props)}
+
+  def new(%{}=props, %Key{kind: kind}=key) do
+    %Entity{
+      kind: kind,
+      key:  key,
+      properties: value_properties(props),
+    }
   end
+
   def new(%{}=props, kind \\ nil, id \\ nil) do
     %Entity{
       kind: kind,
