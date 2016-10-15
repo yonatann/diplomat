@@ -3,11 +3,26 @@ defmodule Diplomat.Entity do
   alias Diplomat.Proto.{CommitRequest, Mutation}
   alias Diplomat.{Key, Value, Entity}
 
+  @type t :: %__MODULE__{
+    kind: String.t,
+    key:  Diplomat.Key.t,
+    properties: %{String.t => Diplomat.Value.t}
+  }
   defstruct kind: nil, key: nil, properties: %{}
 
+  @spec new(%{}) :: t
+  @doc """
+  Creates a new `Diplomat.Entity` with the given properties.
+
+  Instead of building a `Diplomat.Enity` struct manually, `new` is the way you
+  should create your entities. `new` wraps and nests properties correctly, and
+  ensures that your entities have a valid `Key` (among other things).
+  """
   def new(%{}=props),
     do: %Entity{properties: value_properties(props)}
 
+  @spec new(%{}, Diplomat.Key.t) :: t
+  @doc "Creates a new `Diplomat.Entity` with the given properties and `Diplomat.Key`"
   def new(%{}=props, %Key{kind: kind}=key) do
     %Entity{
       kind: kind,
@@ -31,6 +46,12 @@ defmodule Diplomat.Entity do
     |> Enum.into(%{})
   end
 
+  @spec proto(t) :: Diplomat.Proto.Entity.t
+  @doc """
+  Generate a `Diplomat.Proto.Entity` from a given `Diplomat.Entity`. This can
+  then be used to generate the binary protocol buffer representation of the
+  `Diplomat.Entity`
+  """
   def proto(%Entity{key: key, properties: properties}) do
     pb_properties =
       properties
@@ -44,10 +65,14 @@ defmodule Diplomat.Entity do
       properties: pb_properties
     }
   end
+
+  @doc false
   def proto(%{} = properties) do
     proto(%Entity{key: nil, properties: properties})
   end
 
+  @spec from_proto(Diplomat.Proto.Entity.t) :: t
+  @doc "Create a `Diplomat.Entity` from a `Diplomat.Proto.Entity`"
   def from_proto(%PbEntity{key: pb_key, properties: pb_properties}) do
     properties =
       pb_properties
@@ -63,6 +88,25 @@ defmodule Diplomat.Entity do
     }
   end
 
+  @spec properties(t) :: %{}
+  @doc """
+  Extract a `Diplomat.Entity`'s properties as a map.
+
+  The properties are stored on the struct as a map string keys and
+  `Diplomat.Value` values. This function will allow you to extract the properties
+  as a map with string keys and Elixir built-in values.
+
+  For example, creating an `Entity` looks like the following:
+  ```
+  iex> entity = Entity.new(%{"hello" => "world"})
+  # =>   %Diplomat.Entity{key: nil, kind: nil,
+  #         properties: %{"hello" => %Diplomat.Value{value: "world"}}}
+  ```
+
+  `Diplomat.Entity.properties/1` allows you to extract those properties to get
+  the following: `%{"hello" => "world"}`
+
+  """
   def properties(%Entity{properties: properties}) do
     properties
     |> Enum.map(fn {key, %Value{value: value}} ->
@@ -104,13 +148,16 @@ defmodule Diplomat.Entity do
     proto_list(tail, [Entity.proto(e) | acc])
   end
 
+  @doc false
   def commit_request(opts), do: commit_request(opts, :NON_TRANSACTIONAL)
+  @doc false
   def commit_request(opts, mode) do
     CommitRequest.new(
       mode: mode,
       mutations: extract_mutations(opts, [])
     )
   end
+  @doc false
   def commit_request(opts, mode, trans) do
     CommitRequest.new(
       mode: mode,
