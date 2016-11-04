@@ -1,6 +1,6 @@
 defmodule Diplomat.Query do
   alias Diplomat.{Query, Value}
-  alias Diplomat.Proto.{GqlQuery, GqlQueryParameter, RunQueryRequest}
+  alias Diplomat.Proto.{GqlQuery, GqlQueryParameter, RunQueryRequest, PartitionId}
 
   defstruct query: nil, numbered_args: [], named_args: %{}
 
@@ -28,9 +28,11 @@ defmodule Diplomat.Query do
     )
   end
 
-  def execute(%__MODULE__{}=q) do
+  def execute(%__MODULE__{}=q, namespace \\ nil) do
+    {:ok, project} = Goth.Config.get(:project_id)
     RunQueryRequest.new(
-      query_type: {:gql_query, q |> Query.proto}
+      query_type: {:gql_query, q |> Query.proto},
+      partition_id: PartitionId.new(namespace_id: namespace, proejct_id: project)
     ) |> Diplomat.Client.run_query
   end
 
