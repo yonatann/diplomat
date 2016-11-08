@@ -102,6 +102,14 @@ defmodule Diplomat.EntityTest do
     assert %{"person" => %{"firstName" => "Phil"}} == ent |> Entity.properties
   end
 
+  test "pulling properties of arrays of properties" do
+    properties = %{"person" => %{"firstName" => "Phil", "dogs" => [%{"name" => "Fido"}, %{"name" => "Woofer"}]}}
+    # cast to proto
+    ent = properties |> Entity.new("Person") |> Entity.proto |> Entity.from_proto
+    assert  properties == ent |> Entity.properties
+  end
+
+
   test "property names are converted to strings" do
     entity = Entity.new(%{:hello => "world"}, "CodeSnippet")
     assert %{"hello" => "world"} == Entity.properties(entity)
