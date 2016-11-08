@@ -117,6 +117,17 @@ defmodule Diplomat.KeyTest do
     assert <<_::binary>> = pb |> PbKey.encode
   end
 
+  test "converting an incomplete key to a protobuf" do
+    pb = Key.new("Book") |> Key.proto
+    assert %PbKey{
+      path: [
+        %PbKey.PathElement{kind: "Book", id_type: nil}
+      ]
+    } = pb
+
+    assert <<_::binary>> = pb |> PbKey.encode
+  end
+
   test "creating a key from a protobuf struct" do
     key = %Key{
       kind: "User",

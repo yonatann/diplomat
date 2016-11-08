@@ -79,6 +79,9 @@ defmodule Diplomat.Key do
   end
 
   defp proto([], acc), do: acc
+  defp proto([[kind, id]|tail], acc) when is_nil(id) do
+    proto(tail, [PbPathElement.new(kind: kind, id_type: nil)|acc])
+  end
   defp proto([[kind, id]|tail], acc) when is_integer(id) do
     proto(tail, [PbPathElement.new(kind: kind, id_type: {:id, id})|acc])
   end
