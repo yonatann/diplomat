@@ -167,6 +167,11 @@ defmodule Diplomat.KeyTest do
     } |> Key.from_proto
   end
 
+  test "reads proto with an incomplete key" do
+    key = %Key{kind: "Test"}
+    assert key == key |> Key.proto |> Key.from_proto
+  end
+
   test "Key.incomplete?" do
     assert %Key{kind: "Asset"} |> Key.incomplete?
     refute %Key{id: 1}         |> Key.incomplete?

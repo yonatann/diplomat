@@ -106,6 +106,7 @@ defmodule Diplomat.Key do
       {:id, id} -> from_path_proto(tail, [[head.kind, id]|acc])
       # in case value return as char list
       {:name, name} -> from_path_proto(tail, [[head.kind, to_string(name)]|acc])
+      nil -> from_path_proto(tail, [[head.kind, nil]|acc])
     end
   end
 
