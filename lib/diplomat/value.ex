@@ -63,6 +63,8 @@ defmodule Diplomat.Value do
   end
   def proto(val) when is_bitstring(val),
     do: PbVal.new(value_type: {:blob_value, val})
+  def proto(val) when is_list(val),
+    do: proto_list(val, [])
   def proto(%DateTime{}=val) do
     timestamp = DateTime.to_unix(val, :nanoseconds)
     PbVal.new(
@@ -80,8 +82,6 @@ defmodule Diplomat.Value do
   # might need to be more explicit about this...
   def proto({latitude, longitude}) when is_float(latitude) and is_float(longitude),
     do: PbVal.new(value_type: {:geo_point_value, %PbLatLng{latitude: latitude, longitude: longitude}})
-  def proto([head|tail]),
-    do: proto_list([head|tail], [])
 
   defp proto_list([], acc) do
     PbVal.new(

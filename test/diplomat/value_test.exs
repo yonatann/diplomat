@@ -78,6 +78,12 @@ defmodule Diplomat.ValueTest do
     assert proto_values == [1, 2, 3]
   end
 
+  test "an empty list value" do
+    val = [] |> Value.proto
+    {:array_value, array} = val.value_type
+    assert array.values == []
+  end
+
   test "doesn't remove nil values from a list" do
     val = [1,nil,2] |> Value.proto
     {:array_value, array} = val.value_type
