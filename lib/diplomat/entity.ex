@@ -109,13 +109,18 @@ defmodule Diplomat.Entity do
   """
   def properties(%Entity{properties: properties}) do
     properties
-    |> Enum.map(fn {key, %Value{value: value}} ->
-      case value do
-        %Entity{} -> {key, value |> properties}
-        _ -> {key, value}
-      end
+    |> Enum.map(fn {key, value} ->
+      {key, value |> recurse_properties}
     end)
     |> Enum.into(%{})
+  end
+  defp recurse_properties(value) do
+    case value do
+      %Entity{} -> value |> properties
+      %Value{value: value} -> value |> recurse_properties
+      value when is_list(value) -> value |> Enum.map(&recurse_properties/1)
+      _ -> value
+    end
   end
 
   def insert(%Entity{}=entity), do: insert([entity])
