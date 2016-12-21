@@ -125,4 +125,9 @@ defmodule Diplomat.EntityTest do
       }
     } = entity
   end
+
+  # test "encoding an entity with a namespace as a protobuf" do
+  #   entity = Entity.new(%{"hello" => "world"}, %Key{kind: "Message", namespace: "whatever"})
+  #   assert <<>> = entity |> Entity.proto |> Diplomat.Proto.Entity.encode
+  # end
 end

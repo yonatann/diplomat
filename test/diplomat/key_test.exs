@@ -94,7 +94,7 @@ defmodule Diplomat.KeyTest do
     ] == Key.path(child)
   end
 
-  test "converting to single key a protobuf" do
+  test "converting a single key to a protobuf" do
     pb = Key.new("Book", "Romeo+Juliet") |> Key.proto
     assert %PbKey{
       path: [
@@ -154,6 +154,15 @@ defmodule Diplomat.KeyTest do
         PbKey.PathElement.new(kind: "Name", id_type: {:name, "phil-name"})
       ]
     } |> Key.from_proto
+  end
+
+  test "converting a key to a proto struct includes the namespace if defined" do
+    assert %PbKey{
+      partition_id: %Diplomat.Proto.PartitionId{
+        namespace_id: "custom",
+        project_id:   "random"
+      }
+    } = %Key{namespace: "custom", project_id: "random"} |> Key.proto
   end
 
   test "Key.incomplete?" do

@@ -10,7 +10,7 @@ defmodule Diplomat.Key do
 
   A Key must have a unique identifier, which is either a `name` or an `id`.
   Most often, if setting a unique identifier manually, you will use the name
-  field. However, if neither a name nor an id is defined, the `Diplomat` will
+  field. However, if neither a name nor an id is defined, `Diplomat` will
   auto-assign an id by calling the API to allocate an id for the `Key`.
   """
   @type t :: %__MODULE__{
@@ -71,8 +71,10 @@ defmodule Diplomat.Key do
     |> Enum.reverse
 
     partition = case (key.project_id || key.namespace) do
-      nil -> nil
-      _   -> PbPartition.new(project_id: key.project_id, namespace: key.namespace)
+                  nil -> nil
+                  _   ->
+                    {:ok, global_project_id} = Goth.Config.get(:project_id)
+                    PbPartition.new(project_id: key.project_id || global_project_id, namespace_id: key.namespace)
     end
 
     PbKey.new(partition_id: partition, path: path_els)
