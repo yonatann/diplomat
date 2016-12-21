@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/peburrows/diplomat.svg?branch=master)](https://travis-ci.org/peburrows/diplomat)
+
 # Diplomat
 
 Diplomat is an Elixir library for interacting with Google's Cloud Datastore.
