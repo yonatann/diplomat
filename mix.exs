@@ -3,8 +3,8 @@ defmodule Diplomat.Mixfile do
 
   def project do
     [app: :diplomat,
-     version: "0.3.1",
-     elixir: ">= 1.3.0",
+     version: "0.4.0",
+     elixir: "~> 1.3",
      description: "A library for interacting with Google's Cloud Datastore",
      package: package,
      deps: deps]
@@ -17,9 +17,9 @@ defmodule Diplomat.Mixfile do
   defp deps do
     [
       {:credo, "~> 0.4", only: [:dev, :test]},
-      {:goth, "~> 0.2.0"},
+      {:goth, "~> 0.3"},
       {:exprotobuf, "~> 1.2"},
-      {:httpoison, "~> 0.9.0"},
+      {:httpoison, "~> 0.11"},
       {:poison, "~> 2.1"},
       {:bypass, "~> 0.1", only: :test},
       {:mix_test_watch, "~> 0.2.5", only: :dev},
