@@ -81,6 +81,9 @@ defmodule Diplomat.Key do
   end
 
   defp proto([], acc), do: acc
+  defp proto([[kind, id]|tail], acc) when is_nil(id) do
+    proto(tail, [PbPathElement.new(kind: kind, id_type: nil)|acc])
+  end
   defp proto([[kind, id]|tail], acc) when is_integer(id) do
     proto(tail, [PbPathElement.new(kind: kind, id_type: {:id, id})|acc])
   end
@@ -105,6 +108,7 @@ defmodule Diplomat.Key do
       {:id, id} -> from_path_proto(tail, [[head.kind, id]|acc])
       # in case value return as char list
       {:name, name} -> from_path_proto(tail, [[head.kind, to_string(name)]|acc])
+      nil -> from_path_proto(tail, [[head.kind, nil]|acc])
     end
   end
 
