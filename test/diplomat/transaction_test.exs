@@ -21,7 +21,7 @@ defmodule Diplomat.TransactionTest do
     Bypass.expect bypass, fn conn ->
       {:ok, body, conn} = Plug.Conn.read_body(conn)
 
-      assert %TransRequest{project_id: nil} = TransRequest.decode(body)
+      assert %TransRequest{project_id: ""} = TransRequest.decode(body)
 
       assert Regex.match?(~r{/v1beta3/projects/#{project}:beginTransaction}, conn.request_path)
       resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
