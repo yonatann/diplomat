@@ -90,10 +90,10 @@ defmodule Diplomat.Client do
 
   defp url(method), do: url(@api_version, method)
   defp url("v1beta2", method) do
-    Path.join([endpoint, "datastore", @api_version, "datasets", project, method])
+    Path.join([endpoint(), "datastore", @api_version, "datasets", project, method])
   end
   defp url("v1beta3", method) do
-    Path.join([endpoint, @api_version, "projects", "#{project}:#{method}"])
+    Path.join([endpoint(), @api_version, "projects", "#{project}:#{method}"])
   end
 
   defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))

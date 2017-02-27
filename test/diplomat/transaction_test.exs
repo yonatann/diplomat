@@ -69,13 +69,15 @@ defmodule Diplomat.TransactionTest do
 
   test "committing a transaction calls the server with the right data and returns a successful response (whatever that is)", %{bypass: bypass, project: project} do
     commit = CommitResponse.new(
-      mutation_result: MutationResult.new(
-        index_updates: 0,
-        insert_auto_id_key: []
-      )
+      index_updates: 0,
+      mutation_results: [MutationResult.new()]
     )
+
+    IO.inspect(commit)
+
     Bypass.expect bypass, fn conn ->
       assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
+      IO.inspect(commit)
       response = commit |> CommitResponse.encode
       Plug.Conn.resp conn, 201, response
     end

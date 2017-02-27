@@ -68,7 +68,7 @@ defmodule Diplomat.EntityTest do
             "user_agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36",
             "user_guid" => "58GQA26TZ567K3C65VVN", "vbid" => "12345"}
     ent = Entity.new(map, "Log")
-    assert map |> Dict.keys |> length == ent.properties |> Dict.keys |> length
+    assert map |> Map.keys |> length == ent.properties |> Map.keys |> length
     assert ent.kind == "Log"
   end
 
@@ -93,7 +93,7 @@ defmodule Diplomat.EntityTest do
 
   test "encoding an entity that has a nested entity" do
     ent = %{"person" => %{"firstName" => "Phil"}} |> Entity.new("Person")
-    # IO.puts "proto: #{inspect Entity.proto(ent)}"
+    IO.puts "proto: #{inspect Entity.proto(ent)}"
     assert <<_ :: binary>> = ent |> Entity.proto |> Diplomat.Proto.Entity.encode
   end
 
