@@ -78,8 +78,6 @@ defmodule Diplomat.Entity.InsertTest do
   end
 
   test "a failed insert", %{bypass: bypass} do
-    {:ok, project} = Goth.Config.get(:project_id)
-
     Bypass.expect bypass, fn conn ->
       resp = <<8, 3, 18, 22, 69, 110, 116, 105, 116, 121, 32, 105, 115,
         32, 109, 105, 115, 115, 105, 110, 103, 32, 107, 101, 121, 46>>

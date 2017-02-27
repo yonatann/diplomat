@@ -93,7 +93,6 @@ defmodule Diplomat.EntityTest do
 
   test "encoding an entity that has a nested entity" do
     ent = %{"person" => %{"firstName" => "Phil"}} |> Entity.new("Person")
-    IO.puts "proto: #{inspect Entity.proto(ent)}"
     assert <<_ :: binary>> = ent |> Entity.proto |> Diplomat.Proto.Entity.encode
   end
 

@@ -79,7 +79,7 @@ defmodule Diplomat.Client do
 
   defp call(data, method) do
     url(method)
-    |> HTTPoison.post(data, [auth_header, proto_header])
+    |> HTTPoison.post(data, [auth_header(), proto_header()])
     |> case do
       {:ok, %{body: body, status_code: code}} when code in 200..299 ->
         {:ok, body}
@@ -90,10 +90,10 @@ defmodule Diplomat.Client do
 
   defp url(method), do: url(@api_version, method)
   defp url("v1beta2", method) do
-    Path.join([endpoint(), "datastore", @api_version, "datasets", project, method])
+    Path.join([endpoint(), "datastore", @api_version, "datasets", project(), method])
   end
   defp url("v1beta3", method) do
-    Path.join([endpoint(), @api_version, "projects", "#{project}:#{method}"])
+    Path.join([endpoint(), @api_version, "projects", "#{project()}:#{method}"])
   end
 
   defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))
@@ -111,7 +111,7 @@ defmodule Diplomat.Client do
   defp api_scope("v1beta3"), do: "https://www.googleapis.com/auth/datastore"
 
   defp auth_header do
-    {:ok, token} = token_module.for_scope(api_scope)
+    {:ok, token} = token_module().for_scope(api_scope())
     {"Authorization", "#{token.type} #{token.token}"}
   end
 
