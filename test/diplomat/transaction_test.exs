@@ -21,7 +21,7 @@ defmodule Diplomat.TransactionTest do
     Bypass.expect bypass, fn conn ->
       {:ok, body, conn} = Plug.Conn.read_body(conn)
 
-      assert %TransRequest{project_id: nil} = TransRequest.decode(body)
+      assert %TransRequest{project_id: ""} = TransRequest.decode(body)
 
       assert Regex.match?(~r{/v1beta3/projects/#{project}:beginTransaction}, conn.request_path)
       resp = TransResponse.new(transaction: <<40, 30, 20>>) |> TransResponse.encode
@@ -69,11 +69,10 @@ defmodule Diplomat.TransactionTest do
 
   test "committing a transaction calls the server with the right data and returns a successful response (whatever that is)", %{bypass: bypass, project: project} do
     commit = CommitResponse.new(
-      mutation_result: MutationResult.new(
-        index_updates: 0,
-        insert_auto_id_key: []
-      )
+      index_updates: 0,
+      mutation_results: [MutationResult.new()]
     )
+
     Bypass.expect bypass, fn conn ->
       assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
       response = commit |> CommitResponse.encode

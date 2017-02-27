@@ -96,7 +96,7 @@ defmodule KeyUtils do
       %{key | project_id: project_id}
     else
       {162, data} = get_int(left)
-      {namespace, data} = get_prefix_string(data)
+      {namespace, _data} = get_prefix_string(data)
       %{key | project_id: project_id, namespace: namespace}
     end
   end
