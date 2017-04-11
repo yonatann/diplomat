@@ -148,11 +148,6 @@ defmodule Diplomat.Entity do
     end
   end
 
-  defp proto_list([], acc), do: Enum.reverse(acc)
-  defp proto_list([e|tail], acc) do
-    proto_list(tail, [Entity.proto(e) | acc])
-  end
-
   @doc false
   def commit_request(opts), do: commit_request(opts, :NON_TRANSACTIONAL)
   @doc false
