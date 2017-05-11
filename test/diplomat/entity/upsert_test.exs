@@ -29,7 +29,7 @@ defmodule Diplomat.Entity.UpsertTest do
         ]
       } = CommitRequest.decode(body)
 
-      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
+      assert Regex.match?(~r{/v1/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
         mutation_result: MutationResult.new(
           index_updates: 1,

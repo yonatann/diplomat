@@ -1,5 +1,5 @@
 defmodule Diplomat.Client do
-  @api_version "v1beta3"
+  @api_version "v1"
 
   def allocate_ids(req) do
     req
@@ -92,13 +92,13 @@ defmodule Diplomat.Client do
   defp url("v1beta2", method) do
     Path.join([endpoint(), "datastore", @api_version, "datasets", project(), method])
   end
-  defp url("v1beta3", method) do
+  defp url("v1", method) do
     Path.join([endpoint(), @api_version, "projects", "#{project()}:#{method}"])
   end
 
   defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))
   defp default_endpoint("v1beta2"), do: "https://www.googleapis.com"
-  defp default_endpoint("v1beta3"), do: "https://datastore.googleapis.com"
+  defp default_endpoint("v1"), do: "https://datastore.googleapis.com"
   defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
   defp project do
@@ -108,7 +108,7 @@ defmodule Diplomat.Client do
 
   defp api_scope, do: api_scope(@api_version)
   defp api_scope("v1beta2"), do: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/datastore"
-  defp api_scope("v1beta3"), do: "https://www.googleapis.com/auth/datastore"
+  defp api_scope("v1"), do: "https://www.googleapis.com/auth/datastore"
 
   defp auth_header do
     {:ok, token} = token_module().for_scope(api_scope())

@@ -30,7 +30,7 @@ defmodule Diplomat.Entity.AllocateIdsTest do
     {:ok, project} = Goth.Config.get(:project_id)
 
     Bypass.expect bypass, fn conn ->
-      assert Regex.match?(~r{/v1beta3/projects/#{project}:allocateIds}, conn.request_path)
+      assert Regex.match?(~r{/v1/projects/#{project}:allocateIds}, conn.request_path)
       keys = Enum.map 1..count, fn(i)->
                Key.new(kind, i) |> Key.proto
              end

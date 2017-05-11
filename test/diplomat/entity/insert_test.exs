@@ -59,7 +59,7 @@ defmodule Diplomat.Entity.InsertTest do
         ]
       } = CommitRequest.decode(body)
 
-      assert Regex.match?(~r{/v1beta3/projects/#{project}:commit}, conn.request_path)
+      assert Regex.match?(~r{/v1/projects/#{project}:commit}, conn.request_path)
       resp = CommitResponse.new(
         mutation_results: [
           MutationResult.new(key: Key.new(kind, name) |> Key.proto)
