@@ -14,29 +14,31 @@ defmodule Diplomat.Key do
   auto-assign an id by calling the API to allocate an id for the `Key`.
   """
   @type t :: %__MODULE__{
-    id:         String.t,
-    name:       String.t,
+    id:         String.t | nil,
+    name:       String.t | nil,
     kind:       String.t,
-    parent:     Diplomat.Entity.t,
-    project_id: String.t,
-    namespace:  String.t
+    parent:     Diplomat.Key.t | nil,
+    project_id: String.t | nil,
+    namespace:  String.t | nil
   }
 
   defstruct [:id, :name, :kind, :parent, :project_id, :namespace]
 
   @spec new(String.t) :: t
-  @spec new(String.t, String.t) :: t
-  @spec new(String.t, String.t, t) :: t
   @doc "Creates a new `Diplomat.Key` from a kind"
   def new(kind),
     do: %__MODULE__{kind: kind}
+
+  @spec new(String.t, String.t) :: t
   @doc "Creates a new `Diplomat.Key` from a kind and id"
   def new(kind, id) when is_integer(id),
     do: %__MODULE__{kind: kind, id: id}
   @doc "Creates a new `Diplomat.Key` form a kind and a name"
   def new(kind, name),
     do: %__MODULE__{kind: kind, name: name}
-  @doc "Creates a new `Diplomat.Key` from a king, an id or name, and a parent Entity"
+
+  @spec new(String.t, String.t, t) :: t
+  @doc "Creates a new `Diplomat.Key` from a kind, an id or name, and a parent Entity"
   def new(kind, id_or_name, %__MODULE__{}=parent),
     do: %{new(kind, id_or_name) | parent: parent}
 

@@ -6,11 +6,11 @@ defmodule Diplomat.Entity do
   @type t :: %__MODULE__{
     kind: String.t,
     key:  Diplomat.Key.t,
-    properties: %{String.t => Diplomat.Value.t}
+    properties: %{optional(String.t) => Diplomat.Value.t}
   }
   defstruct kind: nil, key: nil, properties: %{}
 
-  @spec new(%{}) :: t
+  @spec new(map()) :: t
   @doc """
   Creates a new `Diplomat.Entity` with the given properties.
 
@@ -18,12 +18,12 @@ defmodule Diplomat.Entity do
   should create your entities. `new` wraps and nests properties correctly, and
   ensures that your entities have a valid `Key` (among other things).
   """
-  def new(%{}=props),
+  def new(props) when is_map(props),
     do: %Entity{properties: value_properties(props)}
 
-  @spec new(%{}, Diplomat.Key.t) :: t
+  @spec new(map(), Diplomat.Key.t) :: t
   @doc "Creates a new `Diplomat.Entity` with the given properties and `Diplomat.Key`"
-  def new(%{}=props, %Key{kind: kind}=key) do
+  def new(props, %Key{kind: kind}=key) when is_map(props) do
     %Entity{
       kind: kind,
       key:  key,
@@ -31,7 +31,7 @@ defmodule Diplomat.Entity do
     }
   end
 
-  def new(%{}=props, kind \\ nil, id \\ nil) do
+  def new(props, kind \\ nil, id \\ nil) do
     %Entity{
       kind: kind,
       key: Key.new(kind, id),
@@ -39,7 +39,7 @@ defmodule Diplomat.Entity do
     }
   end
 
-  defp value_properties(%{} = props) do
+  defp value_properties(props) when is_map(props) do
     props
     |> Map.to_list
     |> Enum.map(fn {name, value} -> {to_string(name), Value.new(value)} end)
