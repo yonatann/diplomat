@@ -89,15 +89,11 @@ defmodule Diplomat.Client do
 
 
   defp url(method), do: url(@api_version, method)
-  defp url("v1beta2", method) do
-    Path.join([endpoint(), "datastore", @api_version, "datasets", project(), method])
-  end
   defp url("v1", method) do
     Path.join([endpoint(), @api_version, "projects", "#{project()}:#{method}"])
   end
 
   defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))
-  defp default_endpoint("v1beta2"), do: "https://www.googleapis.com"
   defp default_endpoint("v1"), do: "https://datastore.googleapis.com"
   defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
@@ -107,7 +103,6 @@ defmodule Diplomat.Client do
   end
 
   defp api_scope, do: api_scope(@api_version)
-  defp api_scope("v1beta2"), do: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/datastore"
   defp api_scope("v1"), do: "https://www.googleapis.com/auth/datastore"
 
   defp auth_header do
