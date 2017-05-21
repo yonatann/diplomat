@@ -1,89 +1,106 @@
 defmodule Diplomat.Client do
+  alias Diplomat.{Entity, Key}
+  alias Diplomat.Proto.{
+    AllocateIdsRequest, AllocateIdsResponse,
+    CommitRequest, CommitResponse,
+    BeginTransactionRequest, BeginTransactionResponse,
+    RollbackRequest, RollbackResponse,
+    RunQueryRequest, RunQueryResponse,
+    LookupRequest, LookupResponse,
+    Status,
+  }
+
   @api_version "v1"
 
+  @type error :: {:error, Status.t}
+  @typep method :: :allocateIds | :beginTransaction | :commit |
+                   :lookup | :rollback | :runQuery
+
+  @spec allocate_ids(AllocateIdsRequest.t) :: list(Key.t) | error
   def allocate_ids(req) do
     req
-    |> Diplomat.Proto.AllocateIdsRequest.encode
-    |> call("allocateIds")
+    |> AllocateIdsRequest.encode
+    |> call(:allocateIds)
     |> case do
       {:ok, body} ->
         body
-        |> Diplomat.Proto.AllocateIdsResponse.decode
-        |> Diplomat.Key.from_allocate_ids_proto
+        |> AllocateIdsResponse.decode
+        |> Key.from_allocate_ids_proto
       any -> any
     end
   end
 
+  @spec commit(CommitRequest.t) :: {:ok, CommitResponse.t} | error
   def commit(req) do
     req # honestly, I just want to see what this looks like in the git things
-    |> Diplomat.Proto.CommitRequest.encode
-    |> call("commit")
+    |> CommitRequest.encode
+    |> call(:commit)
     |> case do
-         {:ok, body} ->
-           decoded = Diplomat.Proto.CommitResponse.decode(body)
-           {:ok, decoded}
-         any ->
-           any
+      {:ok, body} -> {:ok, CommitResponse.decode(body)}
+      any -> any
     end
   end
 
+  @spec begin_transaction(BeginTransactionRequest.t) :: {:ok, BeginTransactionResponse.t} | error
   def begin_transaction(req) do
     req
-    |> Diplomat.Proto.BeginTransactionRequest.encode
-    |> call("beginTransaction")
+    |> BeginTransactionRequest.encode
+    |> call(:beginTransaction)
     |> case do
-         {:ok, body} ->
-           {:ok, Diplomat.Proto.BeginTransactionResponse.decode(body)}
-         any -> any
+      {:ok, body} -> {:ok, BeginTransactionResponse.decode(body)}
+      any -> any
     end
   end
 
+  @spec rollback(RollbackRequest.t) :: {:ok, RollbackResponse.t} | error
   def rollback(req) do
     req
-    |> Diplomat.Proto.RollbackRequest.encode
-    |> call("rollback")
+    |> RollbackRequest.encode
+    |> call(:rollback)
     |> case do
-         {:ok, body} ->
-           {:ok, Diplomat.Proto.RollbackResponse.decode(body)}
-          any -> any
+      {:ok, body} -> {:ok, RollbackResponse.decode(body)}
+      any -> any
     end
   end
 
+  @spec run_query(RunQueryRequest.t) :: list(Entity.t) | error
   def run_query(req) do
     req
-    |> Diplomat.Proto.RunQueryRequest.encode
-    |> call("runQuery")
+    |> RunQueryRequest.encode
+    |> call(:runQuery)
     |> case do
-         {:ok, body} ->
-           result = body |> Diplomat.Proto.RunQueryResponse.decode
-           Enum.map result.batch.entity_results, fn(e) ->
-             Diplomat.Entity.from_proto(e.entity)
-           end
-         any -> any
+      {:ok, body} ->
+        result = body |> RunQueryResponse.decode
+        Enum.map result.batch.entity_results, fn(e) ->
+          Entity.from_proto(e.entity)
+        end
+      any -> any
     end
   end
 
+  @spec lookup(LookupRequest.t) :: list(Entity.t) | error
   def lookup(req) do
     req
-    |> Diplomat.Proto.RunQueryRequest.encode
-    |> call("lookup")
+    |> LookupRequest.encode
+    |> call(:lookup)
     |> case do
-         {:ok, body} ->
-           result = body |> Diplomat.Proto.LookupResponse.decode
-           Enum.map result.found, fn(e) ->
-             Diplomat.Entity.from_proto(e.entity)
-           end
-         any -> any
+      {:ok, body} ->
+        result = body |> LookupResponse.decode
+        Enum.map result.found, fn(e) ->
+          Entity.from_proto(e.entity)
+        end
+      any -> any
     end
   end
 
+  @spec call(String.t, method()) :: {:ok, String.t} | error
   defp call(data, method) do
     url(method)
     |> HTTPoison.post(data, [auth_header(), proto_header()])
     |> case do
       {:ok, %{body: body, status_code: code}} when code in 200..299 ->
         {:ok, body}
-      {_, response} -> {:error, Diplomat.Proto.Status.decode(response.body)}
+      {_, response} -> {:error, Status.decode(response.body)}
     end
   end
 
