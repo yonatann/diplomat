@@ -9,14 +9,16 @@ defmodule Diplomat.Value do
 
   defstruct value: nil
 
-  def new(val=%{__struct__: _}) do
-    %__MODULE__{value: val}
-  end
-  def new(%{}=val) do
-    %__MODULE__{value: Entity.new(val)}
-  end
-
-  def new(val), do: %__MODULE__{value: val}
+  def new(val=%{__struct__: struct}) when struct in [Diplomat.Entity, Diplomat.Key, Diplomat.Value],
+    do: %__MODULE__{value: val}
+  def new(val=%{__struct__: struct}),
+    do: new(Map.from_struct(val))
+  def new(val) when is_map(val),
+    do: %__MODULE__{value: Entity.new(val)}
+  def new(val) when is_list(val),
+    do: %__MODULE__{value: Enum.map(val, &new/1)}
+  def new(val),
+    do: %__MODULE__{value: val}
 
   def from_proto(%PbVal{value_type: {:boolean_value, val}}) when is_boolean(val),
     do: new(val)
@@ -32,8 +34,9 @@ defmodule Diplomat.Value do
     do: val |> Diplomat.Key.from_proto |> new
   def from_proto(%PbVal{value_type: {:entity_value, %PbEntity{} = val}}),
     do: val |> Diplomat.Entity.from_proto |> new
-  def from_proto(%PbVal{value_type: {:array_value, %PbArray{} = val}}),
-    do: val.values |> Enum.map(&Diplomat.Value.from_proto(&1)) |> new
+  def from_proto(%PbVal{value_type: {:array_value, %PbArray{} = val}}) do
+    %__MODULE__{value: Enum.map(val.values, &Diplomat.Value.from_proto/1)}
+  end
   def from_proto(%PbVal{value_type: {:timestamp_value, %PbTimestamp{} = val}}) do
     val.seconds * 1_000_000_000 + (val.nanos || 0)
     |> DateTime.from_unix!(:nanoseconds)
