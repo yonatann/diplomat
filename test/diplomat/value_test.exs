@@ -105,6 +105,12 @@ defmodule Diplomat.ValueTest do
     } = Value.proto(nil)
   end
 
+  test "an atom value" do
+    assert %PbVal{
+      value_type: {:string_value, "atom"}
+    } = Value.proto(:atom)
+  end
+
   test "converting from a Value struct to the proto version" do
     assert %Diplomat.Proto.Value{
       value_type: {:string_value, "hello"}

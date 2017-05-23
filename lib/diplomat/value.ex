@@ -58,6 +58,8 @@ defmodule Diplomat.Value do
     do: PbVal.new(value_type: {:integer_value, val})
   def proto(val) when is_float(val),
     do: PbVal.new(value_type: {:double_value, val})
+  def proto(val) when is_atom(val),
+    do: val |> to_string() |> proto()
   def proto(val) when is_binary(val) do
     case String.valid?(val) do
       true -> PbVal.new(value_type: {:string_value, val})
