@@ -10,6 +10,10 @@ defmodule Diplomat.Client do
     Status,
   }
 
+  @moduledoc """
+  Low level Google DataStore RPC client functions.
+  """
+
   @api_version "v1"
 
   @type error :: {:error, Status.t}
@@ -17,6 +21,7 @@ defmodule Diplomat.Client do
                    :lookup | :rollback | :runQuery
 
   @spec allocate_ids(AllocateIdsRequest.t) :: list(Key.t) | error
+  @doc "Allocate ids for a list of keys with incomplete key paths"
   def allocate_ids(req) do
     req
     |> AllocateIdsRequest.encode
@@ -31,8 +36,9 @@ defmodule Diplomat.Client do
   end
 
   @spec commit(CommitRequest.t) :: {:ok, CommitResponse.t} | error
+  @doc "Commit a transaction optionally performing any number of mutations"
   def commit(req) do
-    req # honestly, I just want to see what this looks like in the git things
+    req
     |> CommitRequest.encode
     |> call(:commit)
     |> case do
@@ -42,6 +48,7 @@ defmodule Diplomat.Client do
   end
 
   @spec begin_transaction(BeginTransactionRequest.t) :: {:ok, BeginTransactionResponse.t} | error
+  @doc "Begin a new transaction"
   def begin_transaction(req) do
     req
     |> BeginTransactionRequest.encode
@@ -53,6 +60,7 @@ defmodule Diplomat.Client do
   end
 
   @spec rollback(RollbackRequest.t) :: {:ok, RollbackResponse.t} | error
+  @doc "Roll back a transaction specified by a transaction id"
   def rollback(req) do
     req
     |> RollbackRequest.encode
@@ -64,6 +72,7 @@ defmodule Diplomat.Client do
   end
 
   @spec run_query(RunQueryRequest.t) :: list(Entity.t) | error
+  @doc "Query for entities"
   def run_query(req) do
     req
     |> RunQueryRequest.encode
@@ -79,6 +88,7 @@ defmodule Diplomat.Client do
   end
 
   @spec lookup(LookupRequest.t) :: list(Entity.t) | error
+  @doc "Lookup entities by key"
   def lookup(req) do
     req
     |> LookupRequest.encode
@@ -111,7 +121,9 @@ defmodule Diplomat.Client do
   end
 
   defp endpoint, do: Application.get_env(:diplomat, :endpoint, default_endpoint(@api_version))
+
   defp default_endpoint("v1"), do: "https://datastore.googleapis.com"
+
   defp token_module, do: Application.get_env(:diplomat, :token_module, Goth.Token)
 
   defp project do
