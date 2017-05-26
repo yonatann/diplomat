@@ -18,11 +18,13 @@ defmodule Diplomat.Entity do
   should create your entities. `new` wraps and nests properties correctly, and
   ensures that your entities have a valid `Key` (among other things).
   """
+  def new(props = %{__struct__: _struct}), do: Map.from_struct(props) |> new()
   def new(props) when is_map(props),
     do: %Entity{properties: value_properties(props)}
 
   @spec new(map(), Diplomat.Key.t) :: t
   @doc "Creates a new `Diplomat.Entity` with the given properties and `Diplomat.Key`"
+  def new(props = %{__struct__: _struct}, key), do: new(Map.from_struct(props), key)
   def new(props, %Key{kind: kind}=key) when is_map(props) do
     %Entity{
       kind: kind,
@@ -39,6 +41,11 @@ defmodule Diplomat.Entity do
     }
   end
 
+  defp value_properties(props = %{__struct__: _struct}) do
+    props
+    |> Map.from_struct()
+    |> value_properties()
+  end
   defp value_properties(props) when is_map(props) do
     props
     |> Map.to_list

@@ -91,6 +91,55 @@ defmodule Diplomat.EntityTest do
     } = person_val
   end
 
+  defmodule Person do
+    defstruct [:firstName, :lastName, :address, :dogs]
+  end
+
+  defmodule Dog do
+    defstruct [:name]
+  end
+
+  defmodule Address do
+    defstruct [:city, :state]
+  end
+
+  test "generating an Entity from a nested struct" do
+    person = %Person{
+      firstName: "Phil",
+      lastName: "Burrows",
+      address: %Address{city: "Seattle", state: "WA"},
+      dogs: [%Dog{name: "fido"}]}
+    ent = %{"person" => person} |> Entity.new("Person")
+
+    assert ent.kind == "Person"
+    assert ent.properties |> Map.to_list |> length == 1
+
+    first_property = ent.properties |> Map.to_list |> List.first
+    {"person", person_val} = first_property
+
+    expected_properties = %{
+      "person" => %{
+        "firstName" => "Phil",
+        "lastName" => "Burrows",
+        "address" => %{"city" => "Seattle", "state" => "WA"},
+        "dogs" => [%{"name" => "fido"}]}}
+    assert expected_properties == Entity.properties(ent)
+    assert %Diplomat.Entity{key: %Diplomat.Key{id: nil, kind: "Person", name: nil,
+        namespace: nil, parent: nil, project_id: nil}, kind: "Person",
+      properties: %{"person" => %Diplomat.Value{value: %Diplomat.Entity{key: nil,
+            kind: nil,
+            properties: %{"address" => %Diplomat.Value{value: %Diplomat.Entity{key: nil,
+                  kind: nil,
+                  properties: %{"city" => %Diplomat.Value{value: "Seattle"},
+                    "state" => %Diplomat.Value{value: "WA"}}}},
+              "dogs" => %Diplomat.Value{value: [%Diplomat.Value{value: %Diplomat.Entity{key: nil,
+                      kind: nil,
+                      properties: %{"name" => %Diplomat.Value{value: "fido"}}}}]},
+              "firstName" => %Diplomat.Value{value: "Phil"},
+              "lastName" => %Diplomat.Value{value: "Burrows"}}}}}} = ent
+  end
+
+
   test "encoding an entity that has a nested entity" do
     ent = %{"person" => %{"firstName" => "Phil"}} |> Entity.new("Person")
     assert <<_ :: binary>> = ent |> Entity.proto |> Diplomat.Proto.Entity.encode
