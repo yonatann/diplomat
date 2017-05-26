@@ -26,6 +26,7 @@ defmodule Diplomat.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:earmark, "~> 1.0", only: :dev},
       {:uuid, "~> 1.1", only: :test},
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
     ]
   end
 
