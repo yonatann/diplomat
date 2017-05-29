@@ -154,20 +154,6 @@ defmodule Diplomat.Key do
     get([key])
   end
 
-  def urlsafe(%__MODULE__{} = key) do
-    key
-    |> proto
-    |> PbKey.encode
-    |> Base.url_encode64(padding: false)
-  end
-
-  def from_urlsafe(value) when is_bitstring(value) do
-    value
-    |> Base.url_decode64!(padding: false)
-    |> PbKey.decode
-    |> Key.from_proto
-  end
-
   @spec path_to_proto([key_pair], [PbPathElement.t]) :: [PbPathElement.t]
   defp path_to_proto([], acc), do: acc
   defp path_to_proto([[kind, id]|tail], acc) when is_nil(id) do
