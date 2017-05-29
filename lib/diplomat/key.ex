@@ -14,7 +14,7 @@ defmodule Diplomat.Key do
   auto-assign an id by calling the API to allocate an id for the `Key`.
   """
   @type t :: %__MODULE__{
-    id:         String.t | nil,
+    id:         integer() | nil,
     name:       String.t | nil,
     kind:       String.t,
     parent:     Diplomat.Key.t | nil,
@@ -29,7 +29,7 @@ defmodule Diplomat.Key do
   def new(kind),
     do: %__MODULE__{kind: kind}
 
-  @spec new(String.t, String.t) :: t
+  @spec new(String.t, String.t | integer()) :: t
   @doc "Creates a new `Diplomat.Key` from a kind and id"
   def new(kind, id) when is_integer(id),
     do: %__MODULE__{kind: kind, id: id}
@@ -37,7 +37,7 @@ defmodule Diplomat.Key do
   def new(kind, name),
     do: %__MODULE__{kind: kind, name: name}
 
-  @spec new(String.t, String.t, t) :: t
+  @spec new(String.t, String.t | integer(), t) :: t
   @doc "Creates a new `Diplomat.Key` from a kind, an id or name, and a parent Entity"
   def new(kind, id_or_name, %__MODULE__{}=parent),
     do: %{new(kind, id_or_name) | parent: parent}
