@@ -7,7 +7,8 @@ defmodule Diplomat.Mixfile do
      elixir: "~> 1.3",
      description: "A library for interacting with Google's Cloud Datastore",
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     dialyzer: [ignore_warnings: ".dialyzer.ignore-warnings"]]
   end
 
   def application do

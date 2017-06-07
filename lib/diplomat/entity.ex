@@ -1,16 +1,20 @@
 defmodule Diplomat.Entity do
   alias Diplomat.Proto.Entity, as: PbEntity
-  alias Diplomat.Proto.{CommitRequest, Mutation}
-  alias Diplomat.{Key, Value, Entity}
+  alias Diplomat.Proto.{CommitRequest, CommitResponse, Mutation, Mode}
+  alias Diplomat.{Key, Value, Entity, Client}
+
+  @type mutation :: {operation(), t}
+  @type operation :: :insert | :upsert | :update | :delete
 
   @type t :: %__MODULE__{
-    kind: String.t,
-    key:  Diplomat.Key.t,
+    kind: String.t | nil,
+    key:  Diplomat.Key.t | nil,
     properties: %{optional(String.t) => Diplomat.Value.t}
   }
+
   defstruct kind: nil, key: nil, properties: %{}
 
-  @spec new(map()) :: t
+  @spec new(struct() | map()) :: t
   @doc """
   Creates a new `Diplomat.Entity` with the given properties.
 
@@ -18,14 +22,20 @@ defmodule Diplomat.Entity do
   should create your entities. `new` wraps and nests properties correctly, and
   ensures that your entities have a valid `Key` (among other things).
   """
-  def new(props = %{__struct__: _struct}), do: Map.from_struct(props) |> new()
+  def new(props = %{__struct__: _struct}),
+    do: Map.from_struct(props) |> new()
   def new(props) when is_map(props),
     do: %Entity{properties: value_properties(props)}
 
-  @spec new(map(), Diplomat.Key.t) :: t
-  @doc "Creates a new `Diplomat.Entity` with the given properties and `Diplomat.Key`"
-  def new(props = %{__struct__: _struct}, key), do: new(Map.from_struct(props), key)
-  def new(props, %Key{kind: kind}=key) when is_map(props) do
+  @spec new(struct() | map(), Key.t | String.t) :: t
+  @doc """
+  Creates a new `Diplomat.Entity` with the given properties and `Diplomat.Key` or `kind`
+  """
+  def new(props, kind) when is_binary(kind),
+    do: new(props, Key.new(kind))
+  def new(props = %{__struct__: _struct}, key),
+    do: new(Map.from_struct(props), key)
+  def new(props, %Key{kind: kind} = key) when is_map(props) do
     %Entity{
       kind: kind,
       key:  key,
@@ -33,27 +43,15 @@ defmodule Diplomat.Entity do
     }
   end
 
-  def new(props, kind \\ nil, id \\ nil) do
-    %Entity{
-      kind: kind,
-      key: Key.new(kind, id),
-      properties: value_properties(props)
-    }
-  end
+  @spec new(struct() | map(), String.t, String.t | integer()) :: t
+  @doc """
+  Creates a new `Diplomat.Entity` with the given properties and creates a
+  `Diplomat.Key` with `kind` and `id`.
+  """
+  def new(props, kind, id),
+    do: new(props, Key.new(kind, id))
 
-  defp value_properties(props = %{__struct__: _struct}) do
-    props
-    |> Map.from_struct()
-    |> value_properties()
-  end
-  defp value_properties(props) when is_map(props) do
-    props
-    |> Map.to_list
-    |> Enum.map(fn {name, value} -> {to_string(name), Value.new(value)} end)
-    |> Enum.into(%{})
-  end
-
-  @spec proto(t) :: Diplomat.Proto.Entity.t
+  @spec proto(map() | t) :: Diplomat.Proto.Entity.t
   @doc """
   Generate a `Diplomat.Proto.Entity` from a given `Diplomat.Entity`. This can
   then be used to generate the binary protocol buffer representation of the
@@ -72,30 +70,26 @@ defmodule Diplomat.Entity do
       properties: pb_properties
     }
   end
-
-  @doc false
-  def proto(%{} = properties) do
-    proto(%Entity{key: nil, properties: properties})
+  def proto(properties) when is_map(properties) do
+    properties
+    |> new()
+    |> proto()
   end
 
-  @spec from_proto(Diplomat.Proto.Entity.t) :: t
+  @spec from_proto(PbEntity.t) :: t
   @doc "Create a `Diplomat.Entity` from a `Diplomat.Proto.Entity`"
+  def from_proto(%PbEntity{key: nil, properties: pb_properties}),
+    do: %Entity{properties: values_from_proto(pb_properties)}
   def from_proto(%PbEntity{key: pb_key, properties: pb_properties}) do
-    properties =
-      pb_properties
-      |> Enum.map(fn {name, pb_value} ->
-        {name, Value.from_proto(pb_value)}
-      end)
-      |> Enum.into(%{})
     key = Key.from_proto(pb_key)
     %Entity{
-      kind: if key do key.kind else nil end,
+      kind: key.kind,
       key: key,
-      properties: properties
+      properties: values_from_proto(pb_properties)
     }
   end
 
-  @spec properties(t) :: %{}
+  @spec properties(t) :: map()
   @doc """
   Extract a `Diplomat.Entity`'s properties as a map.
 
@@ -112,7 +106,6 @@ defmodule Diplomat.Entity do
 
   `Diplomat.Entity.properties/1` allows you to extract those properties to get
   the following: `%{"hello" => "world"}`
-
   """
   def properties(%Entity{properties: properties}) do
     properties
@@ -130,6 +123,7 @@ defmodule Diplomat.Entity do
     end
   end
 
+  @spec insert([t] | t) :: {:ok, Key.t} | Client.error()
   def insert(%Entity{}=entity), do: insert([entity])
   def insert(entities) when is_list(entities) do
     entities
@@ -143,6 +137,7 @@ defmodule Diplomat.Entity do
   end
 
   # at some point we should validate the entity keys
+  @spec upsert([t] | t) :: {:ok, CommitResponse.t} | Client.error()
   def upsert(%Entity{}=entity), do: upsert([entity])
   def upsert(entities) when is_list(entities) do
     entities
@@ -150,13 +145,16 @@ defmodule Diplomat.Entity do
     |> commit_request
     |> Diplomat.Client.commit
     |> case do
-         {:ok, resp} -> resp
-         any -> any
+      {:ok, resp} -> resp
+      any -> any
     end
   end
 
+  @spec commit_request([mutation()]) :: CommitResponse.t
   @doc false
   def commit_request(opts), do: commit_request(opts, :NON_TRANSACTIONAL)
+
+  @spec commit_request([mutation()], Mode.t) :: CommitResponse.t
   @doc false
   def commit_request(opts, mode) do
     CommitRequest.new(
@@ -164,6 +162,8 @@ defmodule Diplomat.Entity do
       mutations: extract_mutations(opts, [])
     )
   end
+
+  @spec commit_request([mutation()], Mode.t, Transaction.t) :: CommitResponse.t
   @doc false
   def commit_request(opts, mode, trans) do
     CommitRequest.new(
@@ -173,6 +173,7 @@ defmodule Diplomat.Entity do
     )
   end
 
+  @spec extract_mutations([mutation()], [Mutation.t]) :: [Mutation.t]
   def extract_mutations([], acc), do: Enum.reverse(acc)
   def extract_mutations([{:insert, ent}|tail], acc) do
     extract_mutations(tail, [Mutation.new(operation: {:insert, proto(ent)})|acc])
@@ -185,5 +186,23 @@ defmodule Diplomat.Entity do
   end
   def extract_mutations([{:delete, key}|tail], acc) do
     extract_mutations(tail, [Mutation.new(operation: {:delete, Key.proto(key)})|acc])
+  end
+
+  defp value_properties(props = %{__struct__: _struct}) do
+    props
+    |> Map.from_struct()
+    |> value_properties()
+  end
+  defp value_properties(props) when is_map(props) do
+    props
+    |> Map.to_list
+    |> Enum.map(fn {name, value} -> {to_string(name), Value.new(value)} end)
+    |> Enum.into(%{})
+  end
+
+  defp values_from_proto(pb_properties) do
+    pb_properties
+    |> Enum.map(fn {name, pb_value} -> {name, Value.from_proto(pb_value)} end)
+    |> Enum.into(%{})
   end
 end
