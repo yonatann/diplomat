@@ -115,7 +115,7 @@ defmodule Diplomat.EntityTest do
     assert ent.properties |> Map.to_list |> length == 1
 
     first_property = ent.properties |> Map.to_list |> List.first
-    {"person", person_val} = first_property
+    {"person", _person_val} = first_property
 
     expected_properties = %{
       "person" => %{

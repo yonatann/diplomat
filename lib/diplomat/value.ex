@@ -11,7 +11,7 @@ defmodule Diplomat.Value do
 
   def new(val=%{__struct__: struct}) when struct in [Diplomat.Entity, Diplomat.Key, Diplomat.Value],
     do: %__MODULE__{value: val}
-  def new(val=%{__struct__: struct}),
+  def new(val=%{__struct__: _struct}),
     do: new(Map.from_struct(val))
   def new(val) when is_map(val),
     do: %__MODULE__{value: Entity.new(val)}
