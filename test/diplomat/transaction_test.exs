@@ -122,7 +122,7 @@ defmodule Diplomat.TransactionTest do
     tx = Transaction.begin()
     result = Transaction.find(tx, %Key{id: 1})
     assert [%Diplomat.Entity{key: %Diplomat.Key{id: nil, kind: "Thing", name: "1",
-            namespace: "", parent: nil, project_id: _}, kind: "Thing",
+            namespace: nil, parent: nil, project_id: _}, kind: "Thing",
             properties: %{"test" => %Diplomat.Value{value: true}}}] = result
   end
 
