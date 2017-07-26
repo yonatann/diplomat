@@ -1,11 +1,5 @@
 defmodule Diplomat.Transaction do
-  alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
-  alias Diplomat.Proto.BeginTransactionRequest,  as: TransRequest
-  alias Diplomat.Proto.RollbackRequest
-  alias Diplomat.Proto.CommitRequest
-  alias Diplomat.{Transaction, Entity, Key}
-
-  @doc """
+  @moduledoc """
   ```
   Transaction.begin
   |> Transaction.save(entity)
@@ -25,6 +19,20 @@ defmodule Diplomat.Transaction do
   end
   ```
   """
+
+  alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
+  alias Diplomat.Proto.BeginTransactionRequest,  as: TransRequest
+  alias Diplomat.Proto.ReadOptions
+  alias Diplomat.Proto.LookupRequest
+  alias Diplomat.Proto.RollbackRequest
+  alias Diplomat.Proto.CommitRequest
+  alias Diplomat.{Transaction, Entity, Key, Client}
+
+  @type t :: %__MODULE__{
+    id: integer,
+    state: :init | :begun,
+    mutations: [Entity.mutation],
+  }
 
   defstruct id: nil, state: :init, mutations: []
 
@@ -69,6 +77,17 @@ defmodule Diplomat.Transaction do
   def rollback(%Transaction{id: id}) when not is_nil(id) do
     RollbackRequest.new(transaction: id)
     |> Diplomat.Client.rollback
+  end
+
+  @spec find(Transaction.t, Key.t | [Key.t]) :: list(Entity.t) | Client.error
+  def find(%Transaction{id: id}, keys) when is_list(keys) do
+    %LookupRequest {
+      keys: Enum.map(keys, &Key.proto(&1)),
+      read_options: %ReadOptions{consistency_type: {:transaction, id}}
+    } |> Diplomat.Client.lookup
+  end
+  def find(transaction, key) do
+    find(transaction, [key])
   end
 
   # we could clean this up with some macros
