@@ -101,6 +101,31 @@ defmodule Diplomat.TransactionTest do
   #   assert Enum.at(t.insert_auto_ids, 0) == e
   # end
 
+  test "find an entity within the context of a transaction", %{bypass: bypass, project: project} do
+    Bypass.expect bypass, fn conn ->
+      path = "/v1/projects/#{project}"
+      cond do
+        Regex.match?(~r{#{path}:beginTransaction}, conn.request_path) ->
+          response = <<10, 29, 9, 166, 1, 0, 0, 0, 0, 0, 0, 18, 18, 108, 111, 121, 97, 108, 45, 103,
+                       108, 97, 115, 115, 45, 49, 54, 51, 48, 48, 50>>
+          Plug.Conn.resp conn, 200, response
+        Regex.match?(~r{#{path}:lookup}, conn.request_path) ->
+          response = <<10, 53, 10, 48, 10, 34, 10, 20, 18, 18, 108, 111, 121, 97, 108, 45, 103, 108,
+                       97, 115, 115, 45, 49, 54, 51, 48, 48, 50, 18, 10, 10, 5, 84, 104, 105, 110,
+                       103, 26, 1, 49, 26, 10, 10, 4, 116, 101, 115, 116, 18, 2, 8, 1, 32, 235, 1>>
+          Plug.Conn.resp conn, 200, response
+        true ->
+          raise "Unknown request"
+      end
+    end
+
+    tx = Transaction.begin()
+    result = Transaction.find(tx, %Key{id: 1})
+    assert [%Diplomat.Entity{key: %Diplomat.Key{id: nil, kind: "Thing", name: "1",
+            namespace: "", parent: nil, project_id: _}, kind: "Thing",
+            properties: %{"test" => %Diplomat.Value{value: true}}}] = result
+  end
+
   test "we can add upserts to a transaction" do
     e = Entity.new(%{whatever: "yes"}, "Thing", 123)
     t = %Transaction{id: 123} |> Transaction.upsert(e)
