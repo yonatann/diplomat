@@ -17,15 +17,15 @@ defmodule Diplomat.Mixfile do
 
   defp deps do
     [
-      {:credo, "~> 0.4", only: [:dev, :test]},
-      {:goth, "~> 0.3"},
+      {:credo, "~> 0.8", only: [:dev, :test]},
+      {:goth, "~> 0.5"},
       {:exprotobuf, "~> 1.2"},
       {:httpoison, "~> 0.11"},
       {:poison, "~> 2.2 or ~> 3.1"},
-      {:bypass, "~> 0.1", only: :test},
-      {:mix_test_watch, "~> 0.2.5", only: :dev},
-      {:ex_doc, "~> 0.14", only: :dev},
-      {:earmark, "~> 1.0", only: :dev},
+      {:bypass, "~> 0.8", only: :test},
+      {:mix_test_watch, "~> 0.4", only: :dev},
+      {:ex_doc, "~> 0.16", only: :dev},
+      {:earmark, "~> 1.2", only: :dev},
       {:uuid, "~> 1.1", only: :test},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
     ]
