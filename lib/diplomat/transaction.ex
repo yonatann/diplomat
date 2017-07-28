@@ -22,10 +22,11 @@ defmodule Diplomat.Transaction do
 
   alias Diplomat.Proto.BeginTransactionResponse, as: TransResponse
   alias Diplomat.Proto.BeginTransactionRequest,  as: TransRequest
-  alias Diplomat.Proto.ReadOptions
-  alias Diplomat.Proto.LookupRequest
-  alias Diplomat.Proto.RollbackRequest
-  alias Diplomat.Proto.CommitRequest
+  alias Diplomat.Proto.{
+    CommitRequest, CommitResponse,
+    RollbackRequest, RollbackResponse,
+    LookupRequest, ReadOptions
+  }
   alias Diplomat.{Transaction, Entity, Key, Client}
 
   @type t :: %__MODULE__{
@@ -36,10 +37,12 @@ defmodule Diplomat.Transaction do
 
   defstruct id: nil, state: :init, mutations: []
 
+  @spec from_begin_response(TransResponse.t) :: t
   def from_begin_response(%TransResponse{transaction: id}) do
     %Transaction{id: id, state: :begun}
   end
 
+  @spec begin() :: t | Client.error
   def begin do
     TransRequest.new
     |> Diplomat.Client.begin_transaction
@@ -51,6 +54,7 @@ defmodule Diplomat.Transaction do
        end
   end
 
+  @spec begin((() -> t)) :: {:ok, CommitResponse.t} | Client.error | {:error, any}
   def begin(block) when is_function(block) do
     # the try block defines a new scope that isn't accessible in the rescue block
     # so we need to begin the transaction here so both have access to the var
@@ -66,7 +70,7 @@ defmodule Diplomat.Transaction do
     end
   end
 
-
+  @spec commit(t) :: {:ok, CommitResponse.t} | Client.error
   def commit(%Transaction{}=transaction) do
     transaction
     |> to_commit_proto
@@ -74,6 +78,7 @@ defmodule Diplomat.Transaction do
   end
 
   # require the transaction to have an ID
+  @spec rollback(t) :: {:ok, RollbackResponse.t} | Client.error
   def rollback(%Transaction{id: id}) when not is_nil(id) do
     RollbackRequest.new(transaction: id)
     |> Diplomat.Client.rollback
@@ -91,30 +96,35 @@ defmodule Diplomat.Transaction do
   end
 
   # we could clean this up with some macros
+  @spec insert(t, Entity.t | [Entity.t]) :: t
   def insert(%Transaction{}=t, %Entity{}=e), do: insert(t, [e])
   def insert(%Transaction{}=t, []), do: t
   def insert(%Transaction{}=t, [%Entity{}=e | tail]) do
     insert(%{t | mutations: [{:insert, e} | t.mutations]}, tail)
   end
 
+  @spec upsert(t, Entity.t | [Entity.t]) :: t
   def upsert(%Transaction{}=t, %Entity{}=e), do: upsert(t, [e])
   def upsert(%Transaction{}=t, []), do: t
   def upsert(%Transaction{}=t, [%Entity{}=e | tail]) do
     upsert(%{t | mutations: [{:upsert, e} | t.mutations]}, tail)
   end
 
+  @spec update(t, Entity.t | [Entity.t]) :: t
   def update(%Transaction{}=t, %Entity{}=e), do: update(t, [e])
   def update(%Transaction{}=t, []), do: t
   def update(%Transaction{}=t, [%Entity{}=e | tail]) do
     update(%{t | mutations: [{:update, e} | t.mutations]}, tail)
   end
 
+  @spec delete(t, Key.t | [Key.t]) :: t
   def delete(%Transaction{}=t, %Key{}=k), do: delete(t, [k])
   def delete(%Transaction{}=t, []), do: t
   def delete(%Transaction{}=t, [%Key{}=k | tail]) do
     delete(%{t | mutations: [{:delete, k} | t.mutations]}, tail)
   end
 
+  @spec to_commit_proto(t) :: CommitRequest.t
   def to_commit_proto(%Transaction{}=transaction) do
     CommitRequest.new(
       mode: :TRANSACTIONAL,

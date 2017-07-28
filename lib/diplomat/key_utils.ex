@@ -2,23 +2,22 @@ defmodule KeyUtils do
   use Bitwise
   alias Diplomat.Key
 
+  @spec urlsafe(Key.t) :: String.t
   def urlsafe(%Key{} = key) do
     key
     |> encode
     |> Base.url_encode64(padding: false)
   end
 
+  @spec from_urlsafe(bitstring) :: {:ok, Key.t} | {:error, String.t}
   def from_urlsafe(value) when is_bitstring(value) do
-    try do
-      key =
-        value
-        |> Base.url_decode64!(padding: false)
-        |> decode
-      {:ok, key}
-    rescue
-      _ ->
-        {:error, "Invalid data"}
-    end
+    key =
+      value
+      |> Base.url_decode64!(padding: false)
+      |> decode
+    {:ok, key}
+  rescue
+    _ -> {:error, "Invalid data"}
   end
 
   #############################################################################

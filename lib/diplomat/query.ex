@@ -4,14 +4,25 @@ defmodule Diplomat.Query do
 
   defstruct query: nil, numbered_args: [], named_args: %{}
 
+  @type t :: %__MODULE__{
+    query: String.t | nil,
+    numbered_args: args_list,
+    named_args: args_map,
+  }
+
+  @type args_list :: [any]
+  @type args_map :: %{optional(atom) => any}
+
+  @spec new(String.t) :: t
   def new(query), do: new(query, [])
+
+  @spec new(String.t, args_map | args_list) :: t
   def new(query, args) when is_list(args) and is_binary(query) do
     %Query{
       query: query,
       numbered_args: args
     }
   end
-
   def new(query, args) when is_map(args) and is_binary(query) do
     %Query{
       query: query,
@@ -19,6 +30,7 @@ defmodule Diplomat.Query do
     }
   end
 
+  @spec proto(t) :: GqlQuery.t
   def proto(%Query{query: q, numbered_args: num, named_args: named}) do
     GqlQuery.new(
       query_string: q,
@@ -28,6 +40,7 @@ defmodule Diplomat.Query do
     )
   end
 
+  @spec execute(t, String.t | nil) :: [Entity.t] | Client.error
   def execute(%__MODULE__{}=q, namespace \\ nil) do
     {:ok, project} = Goth.Config.get(:project_id)
     RunQueryRequest.new(
@@ -36,6 +49,7 @@ defmodule Diplomat.Query do
     ) |> Diplomat.Client.run_query
   end
 
+  @spec positional_bindings(args_list) :: [GqlQueryParameter.t]
   defp positional_bindings(args) do
     args
     |> Enum.map(fn(i) ->
@@ -44,6 +58,7 @@ defmodule Diplomat.Query do
     end)
   end
 
+  @spec positional_bindings(args_map) :: [{String.t, GqlQueryParameter.t}]
   defp named_bindings(args) do
     args
     |> Enum.map(fn {k, v} ->
