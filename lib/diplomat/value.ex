@@ -15,16 +15,8 @@ defmodule Diplomat.Value do
   defstruct value: nil, exclude_from_indexes: false
 
   @spec new(any) :: t
-  def new(val=%{__struct__: struct}) when struct in [Diplomat.Entity, Diplomat.Key, Diplomat.Value],
-    do: %__MODULE__{value: val}
-  def new(val=%{__struct__: _struct}),
-    do: new(Map.from_struct(val))
-  def new(val) when is_map(val),
-    do: %__MODULE__{value: Entity.new(val)}
-  def new(val) when is_list(val),
-    do: %__MODULE__{value: Enum.map(val, &new/1)}
   def new(val),
-    do: %__MODULE__{value: val}
+    do: new(val, false)
     
   @spec new(any, Boolean) :: t
   def new(val=%{__struct__: struct}, exclude_from_indexes) when struct in [Diplomat.Entity, Diplomat.Key, Diplomat.Value],
